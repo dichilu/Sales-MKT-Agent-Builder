@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advantech Agent Builder (v1.15.0)</title>
-    <!-- 引入核心環境 (Babel 7 + React 18) -->
+    <title>Advantech Agent Builder - 穩定部署版</title>
+    <!-- 引入核心環境 (採用 Babel 7 解決白屏報錯) -->
     <script src="[https://unpkg.com/react@18/umd/react.development.js](https://unpkg.com/react@18/umd/react.development.js)"></script>
     <script src="[https://unpkg.com/react-dom@18/umd/react-dom.development.js](https://unpkg.com/react-dom@18/umd/react-dom.development.js)"></script>
     <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
@@ -21,29 +21,35 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
+        /**
+         * v1.22.0 部署修正邏輯：
+         * 1. 移除所有不相容的 import。
+         * 2. 修復 Lucide SVG 遞迴渲染。
+         * 3. 採用 Babel 7 現代編譯器。
+         */
         const { useState, useRef, useEffect, useMemo } = React;
         
-        // 核心修復：讓 Lucide 在 CDN 環境下能被 React 渲染
+        // 核心圖示修正：解決 toSVG is not a function 錯誤
         const LucideIcon = ({ name, size = 16, className = "" }) => {
             const iconRef = useRef(null);
             useEffect(() => {
                 const target = window.lucide && window.lucide.icons[name];
                 if (target && iconRef.current) {
-                    const childrenHtml = target[2].map(([childTag, childAttrs]) => {
-                        const cAttrs = Object.entries(childAttrs).map(([k, v]) => `${k}="${v}"`).join(' ');
-                        return `<${childTag} ${cAttrs}></${childTag}>`;
+                    const [tag, attrs, children] = target;
+                    const childrenHtml = children.map(([cTag, cAttrs]) => {
+                        const attrStr = Object.entries(cAttrs).map(([k, v]) => `${k}="${v}"`).join(' ');
+                        return `<${cTag} ${attrStr}></${cTag}>`;
                     }).join('');
                     iconRef.current.innerHTML = childrenHtml;
-                    // 設定 SVG 屬性
-                    Object.entries(target[1]).forEach(([k, v]) => iconRef.current.setAttribute(k, v));
+                    Object.entries(attrs).forEach(([k, v]) => iconRef.current.setAttribute(k, v));
                     iconRef.current.setAttribute('width', size);
                     iconRef.current.setAttribute('height', size);
+                    iconRef.current.setAttribute('class', `lucide lucide-${name.toLowerCase()} ${className}`);
                 }
-            }, [name, size]);
-            return <svg ref={iconRef} className={className}></svg>;
+            }, [name, size, className]);
+            return <svg ref={iconRef}></svg>;
         };
 
-        // --- 以下為 v1.15.0 核心商業邏輯 ---
         const DICT = {
           zh: {
             appTitle: 'Sales / MKT Agent Builder', flow: 'Flow', switchFlow: '切換：', newFlow: '新建 Flow',
@@ -52,18 +58,16 @@
             addVertical: '垂直關聯 (上下)', dropInputs: '拖曳至此 (可多個)', dropTarget: '拖曳 1 個至此',
             switchDir: '切換方向', dragHere: '拖曳元件至此', settingsTitleAgent: '元件設定',
             settingsTitleLane: '區塊設定', mode: '運作模式', aiOnly: '純 AI 自動化',
-            humanAi: '人機協作審核', humanOnly: '單純人為作業', close: '關閉',
-            agentName: '主標題', agentDesc: '描述', phaseName: '區塊標題', confirmAction: '確認執行', cancel: '取消'
+            humanAi: '人機協作審核', humanOnly: '單純人為作業', close: '關閉'
           },
           en: {
             appTitle: 'Agent Builder', flow: 'Flow', switchFlow: 'Switch:', newFlow: 'New Flow',
             unsaved: 'In-Memory', export: 'Export', agentLib: 'Agent Library',
             addAgent: 'Add Element', addPhase: 'Add Phase', addNto1: 'Merge (N➔1)', add1toN: 'Split (1➔N)',
-            addVertical: 'Vertical', dropInputs: 'Drop items here', dropTarget: 'Drop 1 item here',
-            switchDir: 'Switch Direction', dragHere: 'Drop here', settingsTitleAgent: 'Element Settings',
+            addVertical: 'Vertical', dropInputs: 'Drop items', dropTarget: 'Drop 1 item',
+            switchDir: 'Switch Dir', dragHere: 'Drop here', settingsTitleAgent: 'Element Settings',
             settingsTitleLane: 'Phase Settings', mode: 'Mode', aiOnly: 'AI Only',
-            humanAi: 'Human-in-the-Loop', humanOnly: 'Human Only', close: 'Close',
-            agentName: 'Title', agentDesc: 'Desc', phaseName: 'Phase', confirmAction: 'Confirm', cancel: 'Cancel'
+            humanAi: 'Human-in-the-Loop', humanOnly: 'Human Only', close: 'Close'
           }
         };
 
@@ -74,9 +78,11 @@
         ];
 
         const INITIAL_AGENT_LIBRARY = [
-          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理', en: 'Content Agent' }, subtitle: { zh: '生成行銷內容', en: 'Marketing Content' }, mode: 'ai-only' },
-          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理', en: 'Intel Agent' }, subtitle: { zh: '蒐集競品資訊', en: 'Gather info' }, mode: 'ai-only' },
-          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求助理', en: 'RFQ Agent' }, subtitle: { zh: '建議產品組態', en: 'Suggest config' }, mode: 'human-ai' }
+          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理', en: 'Content Agent' }, subtitle: { zh: '生成行銷內容', en: 'Gen Content' }, mode: 'ai-only' },
+          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理', en: 'Intel Agent' }, subtitle: { zh: '蒐集競品資訊', en: 'Gather Intel' }, mode: 'ai-only' },
+          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求助理', en: 'RFQ Agent' }, subtitle: { zh: '建議產品組態', en: 'Suggest Config' }, mode: 'human-ai' },
+          { id: 'c1', categoryId: 'cat_3', name: { zh: '銷售促成', en: 'Sales Engagement' }, subtitle: { zh: 'Nego & Close Deal', en: 'Nego & Close' }, mode: 'human-only' },
+          { id: 'c4', categoryId: 'cat_3', name: { zh: '銷售代理', en: 'Sales Agent' }, subtitle: { zh: 'Product / CRM', en: 'Product / CRM' }, mode: 'ai-only' }
         ];
 
         const THEME_MAP = {
@@ -91,40 +97,40 @@
         function App() {
           const [lang, setLang] = useState('zh');
           const t = DICT[lang];
-          const [agentLibrary, setAgentLibrary] = useState(INITIAL_AGENT_LIBRARY);
+          const [agentLibrary] = useState(INITIAL_AGENT_LIBRARY);
           const [scenarios, setScenarios] = useState([
-            { id: 's1', name: { zh: '研華 AI 戰略對齊', en: 'Advantech AI Alignment' }, 
-              lanes: [{ id: 'l1', name: {zh:'1 理解與分析', en:'1 Analysis'}, theme:'blue', nodes:['a1', 'a2'] }] 
+            { id: 's1', name: { zh: '研華 AI 戰略對齊 (v1.15.0)', en: 'Advantech AI Alignment' }, 
+              lanes: [
+                { id: 'l1', name: {zh:'1 理解與分析', en:'1 Analysis'}, theme:'blue', nodes:[{ id:'hg_1', type:'horizontal', mode:'n-to-1', direction:'ltr', inputs:['a1', 'a2'], target:'b7' }] },
+                { id: 'l2', name: {zh:'2 執行與跟進', en:'2 Execution'}, theme:'orange', nodes:['c1'] },
+                { id: 'l3', name: {zh:'3 售後輔助', en:'3 Post-Sales'}, theme:'green', nodes:[{ id:'vg_1', type:'vertical', topId:'c1', bottomId:'c4', arrow:'up' }] }
+              ] 
             }
           ]);
-          const [activeScenarioId, setActiveScenarioId] = useState('s1');
-          const [activePanel, setActivePanel] = useState(null);
+          const [activeScenarioId] = useState('s1');
           const dragPayloadRef = useRef(null);
 
           const currentScenario = scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
-          const getAgentById = (id) => agentLibrary.find(a => a.id === id);
 
-          const handleDrop = (e, targetZoneId) => {
+          const handleDrop = (e, targetLaneId) => {
             e.preventDefault(); e.stopPropagation();
             const agentId = dragPayloadRef.current;
             if (!agentId) return;
-
             setScenarios(prev => prev.map(s => {
-              if (s.id !== activeScenarioId) return s;
-              const newLanes = s.lanes.map(l => {
-                const filteredNodes = l.nodes.filter(n => n !== agentId);
-                return l.id === targetZoneId.replace('lane_', '') ? { ...l, nodes: [...filteredNodes, agentId] } : { ...l, nodes: filteredNodes };
-              });
-              return { ...s, lanes: newLanes };
+                const newLanes = s.lanes.map(l => {
+                    const filtered = l.nodes.filter(n => n !== agentId);
+                    return l.id === targetLaneId ? { ...l, nodes: [...filtered, agentId] } : { ...l, nodes: filtered };
+                });
+                return { ...s, lanes: newLanes };
             }));
           };
 
-          const AgentCard = ({ agentId, laneId }) => {
-            const agent = getAgentById(agentId);
+          const AgentCard = ({ agentId, isInsideGroup }) => {
+            const agent = agentLibrary.find(a => a.id === agentId);
             if (!agent) return null;
             const aTheme = THEME_MAP[INITIAL_CATEGORIES.find(c => c.id === agent.categoryId)?.theme || 'slate'];
             return (
-              <div draggable onDragStart={() => dragPayloadRef.current = agentId} className={`p-4 mb-4 ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl border-l-4 ${aTheme.border.replace('bg-', 'border-')} flex items-center bg-white shadow-sm`}>
+              <div draggable onDragStart={() => dragPayloadRef.current = agentId} className={`p-4 ${isInsideGroup ? 'mb-2' : 'mb-4'} ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl border-l-4 ${aTheme.border.replace('bg-', 'border-')} bg-white shadow-sm flex items-center`}>
                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white mr-3"><LucideIcon name="Bot" size={14} /></div>
                 <div className="font-bold text-xs">{getLoc(agent.name, lang)}</div>
               </div>
@@ -133,24 +139,25 @@
 
           return (
             <div className="flex flex-col h-screen w-full">
-              <nav className="h-14 bg-white border-b flex justify-between items-center px-6">
+              <nav className="h-14 bg-white border-b flex justify-between items-center px-6 shrink-0">
                 <div className="flex items-center space-x-2">
                     <LucideIcon name="Layers" className="text-blue-900" size={20} />
-                    <span className="font-black uppercase text-sm">{t.appTitle}</span>
+                    <span className="font-black uppercase text-sm tracking-tighter">{t.appTitle}</span>
                 </div>
-                <div className="flex space-x-2">
-                    <button onClick={() => setLang(lang==='zh'?'en':'zh')} className="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold">{lang==='zh'?'EN':'中文'}</button>
+                <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-bold text-slate-400 mr-4">v1.15.0 ENGINE</span>
+                    <button onClick={() => setLang(lang==='zh'?'en':'zh')} className="bg-slate-100 px-3 py-1.5 rounded-lg text-[10px] font-black">{lang==='zh'?'EN':'中文'}</button>
                 </div>
               </nav>
               <div className="flex-1 flex overflow-hidden">
-                <aside className="w-72 border-r bg-white p-6 overflow-y-auto">
+                <aside className="w-72 border-r bg-white p-6 overflow-y-auto shrink-0">
                     {INITIAL_CATEGORIES.map(cat => (
                         <div key={cat.id} className="mb-6">
-                            <div className="text-[10px] font-black text-slate-400 uppercase mb-3">{getLoc(cat.name, lang)}</div>
+                            <div className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">{getLoc(cat.name, lang)}</div>
                             {agentLibrary.filter(a => a.categoryId === cat.id).map(a => (
-                                <div key={a.id} draggable onDragStart={() => dragPayloadRef.current = a.id} className="p-3 border rounded-xl mb-2 bg-slate-50 flex items-center cursor-grab">
+                                <div key={a.id} draggable onDragStart={() => dragPayloadRef.current = a.id} className="p-3 border rounded-xl mb-2 bg-slate-50 flex items-center cursor-grab hover:bg-white hover:shadow-md transition-all">
                                     <LucideIcon name="Bot" className="mr-2 text-blue-600" size={14} />
-                                    <span className="text-xs font-bold">{getLoc(a.name, lang)}</span>
+                                    <span className="text-xs font-bold text-slate-600">{getLoc(a.name, lang)}</span>
                                 </div>
                             ))}
                         </div>
@@ -160,12 +167,33 @@
                     <div className="flex space-x-8">
                         {currentScenario.lanes.map((lane, idx) => (
                             <div key={lane.id} className="w-80 shrink-0">
-                                <div className={`${THEME_MAP[lane.theme]?.bg || 'bg-slate-500'} text-white p-4 rounded-t-3xl font-black flex items-center shadow-md`}>
+                                <div className={`${THEME_MAP[lane.theme].bg} text-white p-4 rounded-t-3xl font-black flex items-center shadow-lg relative z-10`}>
                                     <span className="w-5 h-5 bg-white/20 rounded mr-2 flex items-center justify-center text-[10px]">{idx+1}</span>
                                     {getLoc(lane.name, lang)}
                                 </div>
-                                <div onDragOver={e => e.preventDefault()} onDrop={e => handleDrop(e, `lane_${lane.id}`)} className="bg-white/90 p-5 min-h-[500px] rounded-b-3xl border shadow-xl">
-                                    {lane.nodes.map(node => <AgentCard key={node} agentId={node} laneId={lane.id} />)}
+                                <div onDragOver={e => e.preventDefault()} onDrop={e => handleDrop(e, lane.id)} className="bg-white/90 backdrop-blur-sm p-5 min-h-[600px] rounded-b-3xl border border-white shadow-2xl">
+                                    {lane.nodes.map((node, i) => {
+                                        if (typeof node === 'string') return <AgentCard key={i} agentId={node} />;
+                                        if (node.type === 'horizontal') return (
+                                            <div key={i} className="p-4 border-2 border-dashed rounded-[24px] mb-6 flex items-center justify-center bg-slate-50/50">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="flex items-center space-x-2">
+                                                        <div className="flex flex-col">{node.inputs.map(id => <AgentCard key={id} agentId={id} isInsideGroup />)}</div>
+                                                        <LucideIcon name="ArrowRight" size={20} className="text-slate-300" />
+                                                        <AgentCard agentId={node.target} isInsideGroup />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                        if (node.type === 'vertical') return (
+                                            <div key={i} className="p-4 border-2 border-dashed rounded-[24px] mb-6 flex flex-col items-center bg-slate-50/50">
+                                                <AgentCard agentId={node.topId} isInsideGroup />
+                                                <LucideIcon name="ArrowUp" size={20} className="text-slate-300 my-2" />
+                                                <AgentCard agentId={node.bottomId} isInsideGroup />
+                                            </div>
+                                        );
+                                        return null;
+                                    })}
                                 </div>
                             </div>
                         ))}

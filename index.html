@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advantech Agent Builder (v1.15.0)</title>
+    <!-- 引入核心環境 (Babel 7 + React 18) -->
+    <script src="[https://unpkg.com/react@18/umd/react.development.js](https://unpkg.com/react@18/umd/react.development.js)"></script>
+    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.development.js](https://unpkg.com/react-dom@18/umd/react-dom.development.js)"></script>
+    <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
+    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
+    <style>
+        @import url('[https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap)');
+        body { font-family: 'Inter', sans-serif; background: #f1f4f8; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useRef, useEffect, useMemo } = React;
+        
+        // 核心修復：讓 Lucide 在 CDN 環境下能被 React 渲染
+        const LucideIcon = ({ name, size = 16, className = "" }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                const target = window.lucide && window.lucide.icons[name];
+                if (target && iconRef.current) {
+                    const childrenHtml = target[2].map(([childTag, childAttrs]) => {
+                        const cAttrs = Object.entries(childAttrs).map(([k, v]) => `${k}="${v}"`).join(' ');
+                        return `<${childTag} ${cAttrs}></${childTag}>`;
+                    }).join('');
+                    iconRef.current.innerHTML = childrenHtml;
+                    // 設定 SVG 屬性
+                    Object.entries(target[1]).forEach(([k, v]) => iconRef.current.setAttribute(k, v));
+                    iconRef.current.setAttribute('width', size);
+                    iconRef.current.setAttribute('height', size);
+                }
+            }, [name, size]);
+            return <svg ref={iconRef} className={className}></svg>;
+        };
+
+        // --- 以下為 v1.15.0 核心商業邏輯 ---
+        const DICT = {
+          zh: {
+            appTitle: 'Sales / MKT Agent Builder', flow: 'Flow', switchFlow: '切換：', newFlow: '新建 Flow',
+            unsaved: '未儲存 (In-Memory)', export: '匯出架構圖', agentLib: '企業 Agent 庫',
+            addAgent: '新增元件', addPhase: '新增區塊', addNto1: '多對一 (匯聚)', add1toN: '一對多 (擴散)',
+            addVertical: '垂直關聯 (上下)', dropInputs: '拖曳至此 (可多個)', dropTarget: '拖曳 1 個至此',
+            switchDir: '切換方向', dragHere: '拖曳元件至此', settingsTitleAgent: '元件設定',
+            settingsTitleLane: '區塊設定', mode: '運作模式', aiOnly: '純 AI 自動化',
+            humanAi: '人機協作審核', humanOnly: '單純人為作業', close: '關閉',
+            agentName: '主標題', agentDesc: '描述', phaseName: '區塊標題', confirmAction: '確認執行', cancel: '取消'
+          },
+          en: {
+            appTitle: 'Agent Builder', flow: 'Flow', switchFlow: 'Switch:', newFlow: 'New Flow',
+            unsaved: 'In-Memory', export: 'Export', agentLib: 'Agent Library',
+            addAgent: 'Add Element', addPhase: 'Add Phase', addNto1: 'Merge (N➔1)', add1toN: 'Split (1➔N)',
+            addVertical: 'Vertical', dropInputs: 'Drop items here', dropTarget: 'Drop 1 item here',
+            switchDir: 'Switch Direction', dragHere: 'Drop here', settingsTitleAgent: 'Element Settings',
+            settingsTitleLane: 'Phase Settings', mode: 'Mode', aiOnly: 'AI Only',
+            humanAi: 'Human-in-the-Loop', humanOnly: 'Human Only', close: 'Close',
+            agentName: 'Title', agentDesc: 'Desc', phaseName: 'Phase', confirmAction: 'Confirm', cancel: 'Cancel'
+          }
+        };
+
+        const INITIAL_CATEGORIES = [
+          { id: 'cat_1', name: { zh: 'Marketing Oriented', en: 'Marketing Oriented' }, theme: 'blue' },
+          { id: 'cat_2', name: { zh: 'Sales Oriented', en: 'Sales Oriented' }, theme: 'orange' },
+          { id: 'cat_3', name: { zh: 'After-Sales Oriented', en: 'After-Sales Oriented' }, theme: 'green' }
+        ];
+
+        const INITIAL_AGENT_LIBRARY = [
+          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理', en: 'Content Agent' }, subtitle: { zh: '生成行銷內容', en: 'Marketing Content' }, mode: 'ai-only' },
+          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理', en: 'Intel Agent' }, subtitle: { zh: '蒐集競品資訊', en: 'Gather info' }, mode: 'ai-only' },
+          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求助理', en: 'RFQ Agent' }, subtitle: { zh: '建議產品組態', en: 'Suggest config' }, mode: 'human-ai' }
+        ];
+
+        const THEME_MAP = {
+          blue: { bg: 'bg-[#0070c0]', cardBg: 'bg-blue-50', cardBorder: 'border-blue-200', cardText: 'text-blue-900', border: 'border-[#0070c0]' },
+          orange: { bg: 'bg-[#ed7d31]', cardBg: 'bg-orange-50', cardBorder: 'border-orange-200', cardText: 'text-orange-900', border: 'border-[#ed7d31]' },
+          green: { bg: 'bg-[#70ad47]', cardBg: 'bg-emerald-50', cardBorder: 'border-emerald-200', cardText: 'text-emerald-900', border: 'border-[#70ad47]' },
+          slate: { bg: 'bg-slate-500', cardBg: 'bg-slate-100', cardBorder: 'border-slate-300', cardText: 'text-slate-800', border: 'border-slate-500' }
+        };
+
+        const getLoc = (textObj, lang) => (typeof textObj === 'object' ? textObj[lang] || textObj.en : textObj);
+
+        function App() {
+          const [lang, setLang] = useState('zh');
+          const t = DICT[lang];
+          const [agentLibrary, setAgentLibrary] = useState(INITIAL_AGENT_LIBRARY);
+          const [scenarios, setScenarios] = useState([
+            { id: 's1', name: { zh: '研華 AI 戰略對齊', en: 'Advantech AI Alignment' }, 
+              lanes: [{ id: 'l1', name: {zh:'1 理解與分析', en:'1 Analysis'}, theme:'blue', nodes:['a1', 'a2'] }] 
+            }
+          ]);
+          const [activeScenarioId, setActiveScenarioId] = useState('s1');
+          const [activePanel, setActivePanel] = useState(null);
+          const dragPayloadRef = useRef(null);
+
+          const currentScenario = scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
+          const getAgentById = (id) => agentLibrary.find(a => a.id === id);
+
+          const handleDrop = (e, targetZoneId) => {
+            e.preventDefault(); e.stopPropagation();
+            const agentId = dragPayloadRef.current;
+            if (!agentId) return;
+
+            setScenarios(prev => prev.map(s => {
+              if (s.id !== activeScenarioId) return s;
+              const newLanes = s.lanes.map(l => {
+                const filteredNodes = l.nodes.filter(n => n !== agentId);
+                return l.id === targetZoneId.replace('lane_', '') ? { ...l, nodes: [...filteredNodes, agentId] } : { ...l, nodes: filteredNodes };
+              });
+              return { ...s, lanes: newLanes };
+            }));
+          };
+
+          const AgentCard = ({ agentId, laneId }) => {
+            const agent = getAgentById(agentId);
+            if (!agent) return null;
+            const aTheme = THEME_MAP[INITIAL_CATEGORIES.find(c => c.id === agent.categoryId)?.theme || 'slate'];
+            return (
+              <div draggable onDragStart={() => dragPayloadRef.current = agentId} className={`p-4 mb-4 ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl border-l-4 ${aTheme.border.replace('bg-', 'border-')} flex items-center bg-white shadow-sm`}>
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white mr-3"><LucideIcon name="Bot" size={14} /></div>
+                <div className="font-bold text-xs">{getLoc(agent.name, lang)}</div>
+              </div>
+            );
+          };
+
+          return (
+            <div className="flex flex-col h-screen w-full">
+              <nav className="h-14 bg-white border-b flex justify-between items-center px-6">
+                <div className="flex items-center space-x-2">
+                    <LucideIcon name="Layers" className="text-blue-900" size={20} />
+                    <span className="font-black uppercase text-sm">{t.appTitle}</span>
+                </div>
+                <div className="flex space-x-2">
+                    <button onClick={() => setLang(lang==='zh'?'en':'zh')} className="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold">{lang==='zh'?'EN':'中文'}</button>
+                </div>
+              </nav>
+              <div className="flex-1 flex overflow-hidden">
+                <aside className="w-72 border-r bg-white p-6 overflow-y-auto">
+                    {INITIAL_CATEGORIES.map(cat => (
+                        <div key={cat.id} className="mb-6">
+                            <div className="text-[10px] font-black text-slate-400 uppercase mb-3">{getLoc(cat.name, lang)}</div>
+                            {agentLibrary.filter(a => a.categoryId === cat.id).map(a => (
+                                <div key={a.id} draggable onDragStart={() => dragPayloadRef.current = a.id} className="p-3 border rounded-xl mb-2 bg-slate-50 flex items-center cursor-grab">
+                                    <LucideIcon name="Bot" className="mr-2 text-blue-600" size={14} />
+                                    <span className="text-xs font-bold">{getLoc(a.name, lang)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </aside>
+                <main className="flex-1 bg-[#f1f4f8] p-12 overflow-auto flex justify-center items-start">
+                    <div className="flex space-x-8">
+                        {currentScenario.lanes.map((lane, idx) => (
+                            <div key={lane.id} className="w-80 shrink-0">
+                                <div className={`${THEME_MAP[lane.theme]?.bg || 'bg-slate-500'} text-white p-4 rounded-t-3xl font-black flex items-center shadow-md`}>
+                                    <span className="w-5 h-5 bg-white/20 rounded mr-2 flex items-center justify-center text-[10px]">{idx+1}</span>
+                                    {getLoc(lane.name, lang)}
+                                </div>
+                                <div onDragOver={e => e.preventDefault()} onDrop={e => handleDrop(e, `lane_${lane.id}`)} className="bg-white/90 p-5 min-h-[500px] rounded-b-3xl border shadow-xl">
+                                    {lane.nodes.map(node => <AgentCard key={node} agentId={node} laneId={lane.id} />)}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </main>
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -29,35 +29,42 @@
         // 1. 綁定 React Hooks
         const { useState, useRef, useEffect, Fragment } = React;
 
-        // 2. 自動橋接 Lucide 圖示 (加入防呆機制，若圖示遺失給予預設佔位符)
+        // 2. 自動橋接 Lucide 圖示 (🚀 UI FIX: 修正 CDN 圖示資料結構解析)
         const LucideIcon = ({ name, size = 16, className = "", ...props }) => {
             const iconRef = useRef(null);
             useEffect(() => {
-                if (window.lucide && window.lucide.icons[name]) {
-                    const [tag, attrs, children] = window.lucide.icons[name];
-                    const svgHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">` +
-                        children.map(c => `<${c[0]} ${Object.entries(c[1]).map(([k,v])=>`${k}="${v}"`).join(' ')}></${c[0]}>`).join('') +
-                        `</svg>`;
-                    iconRef.current.innerHTML = svgHtml;
-                } else if (iconRef.current) {
-                    // 若 CDN 抓不到圖示，顯示一個紅色的 X 作為緊急替代，避免按鈕變隱形空殼
-                    iconRef.current.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                if (window.lucide && window.lucide.icons) {
+                    // 將傳入的 trash-2 自動轉換成 CDN 看得懂的 Trash2 (PascalCase)
+                    const pascalName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+                    const iconData = window.lucide.icons[pascalName] || window.lucide.icons[name];
+
+                    if (Array.isArray(iconData)) {
+                        const childrenHtml = iconData.map(c => {
+                            const tag = c[0];
+                            const attrs = c[1] || {};
+                            const attrString = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
+                            return `<${tag} ${attrString}></${tag}>`;
+                        }).join('');
+                        
+                        const svgHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${childrenHtml}</svg>`;
+                        iconRef.current.innerHTML = svgHtml;
+                    } else if (iconRef.current) {
+                        // 防呆 X 標示
+                        iconRef.current.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                    }
                 }
             }, [name, size, className]);
             return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} {...props}></span>;
         };
 
-        // 3. 手動註冊畫面上用到的所有圖示 (包含 v1.16/v1.17 新增的圖示)
+        // 3. 手動註冊畫面上用到的所有圖示 (還原正確的圖示名稱)
         const Database = (p) => <LucideIcon name="database" {...p} />;
         const Search = (p) => <LucideIcon name="search" {...p} />;
         const TrendingUp = (p) => <LucideIcon name="trending-up" {...p} />;
         const FileText = (p) => <LucideIcon name="file-text" {...p} />;
         const Settings = (p) => <LucideIcon name="settings" {...p} />;
         const Plus = (p) => <LucideIcon name="plus" {...p} />;
-        
-        // 🚀 UI FIX: 將 trash-2 改為最穩定支援的 trash，解決 CDN 抓不到圖示的問題
-        const Trash2 = (p) => <LucideIcon name="trash" {...p} />;
-        
+        const Trash2 = (p) => <LucideIcon name="trash-2" {...p} />;
         const MessageCircle = (p) => <LucideIcon name="message-circle" {...p} />;
         const GripVertical = (p) => <LucideIcon name="grip-vertical" {...p} />;
         const CheckCircle2 = (p) => <LucideIcon name="check-circle-2" {...p} />;
@@ -92,11 +99,11 @@
         const FileJson = (p) => <LucideIcon name="file-json" {...p} />;
 
         // =========================================================================
-        // 4. SSOT v1.17.3 商業邏輯代碼 (修復垃圾桶圖示渲染)
+        // 4. SSOT v1.17.5 商業邏輯代碼 (修復圖示渲染崩潰問題)
         // =========================================================================
 
-        const APP_VERSION = "v1.17.3 (GitHub 部署版)";
-        const APP_UPDATE_NOTE = "UI Fix: Restore Missing Trash Icon";
+        const APP_VERSION = "v1.17.5 (GitHub 部署版)";
+        const APP_UPDATE_NOTE = "UI Fix: Icon Component Parsing Structure";
 
         const DICT = {
           zh: {

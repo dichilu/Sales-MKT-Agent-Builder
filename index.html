@@ -3,203 +3,939 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advantech Agent Builder - 穩定部署版</title>
-    <!-- 引入核心環境 (採用 Babel 7 解決白屏報錯) -->
-    <script src="[https://unpkg.com/react@18/umd/react.development.js](https://unpkg.com/react@18/umd/react.development.js)"></script>
-    <script src="[https://unpkg.com/react-dom@18/umd/react-dom.development.js](https://unpkg.com/react-dom@18/umd/react-dom.development.js)"></script>
-    <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
-    <script src="[https://unpkg.com/lucide@latest](https://unpkg.com/lucide@latest)"></script>
+    <title>Sales / MKT Agent Builder - Advantech</title>
+    
+    <!-- 引入核心環境 -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- 引入 Lucide 原始庫以取代 import -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        @import url('[https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap)');
-        body { font-family: 'Inter', sans-serif; background: #f1f4f8; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #f8f9fb; margin: 0; padding: 0; overflow: hidden; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
+
     <script type="text/babel">
-        /**
-         * v1.22.0 部署修正邏輯：
-         * 1. 移除所有不相容的 import。
-         * 2. 修復 Lucide SVG 遞迴渲染。
-         * 3. 採用 Babel 7 現代編譯器。
-         */
-        const { useState, useRef, useEffect, useMemo } = React;
-        
-        // 核心圖示修正：解決 toSVG is not a function 錯誤
-        const LucideIcon = ({ name, size = 16, className = "" }) => {
+        // 1. 綁定 React Hooks
+        const { useState, useRef, useEffect, Fragment } = React;
+
+        // 2. 自動橋接 Lucide 圖示
+        const LucideIcon = ({ name, size = 16, className = "", ...props }) => {
             const iconRef = useRef(null);
             useEffect(() => {
-                const target = window.lucide && window.lucide.icons[name];
-                if (target && iconRef.current) {
-                    const [tag, attrs, children] = target;
-                    const childrenHtml = children.map(([cTag, cAttrs]) => {
-                        const attrStr = Object.entries(cAttrs).map(([k, v]) => `${k}="${v}"`).join(' ');
-                        return `<${cTag} ${attrStr}></${cTag}>`;
-                    }).join('');
-                    iconRef.current.innerHTML = childrenHtml;
-                    Object.entries(attrs).forEach(([k, v]) => iconRef.current.setAttribute(k, v));
-                    iconRef.current.setAttribute('width', size);
-                    iconRef.current.setAttribute('height', size);
-                    iconRef.current.setAttribute('class', `lucide lucide-${name.toLowerCase()} ${className}`);
+                if (window.lucide && window.lucide.icons[name]) {
+                    const [tag, attrs, children] = window.lucide.icons[name];
+                    const svgHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">` +
+                        children.map(c => `<${c[0]} ${Object.entries(c[1]).map(([k,v])=>`${k}="${v}"`).join(' ')}></${c[0]}>`).join('') +
+                        `</svg>`;
+                    iconRef.current.innerHTML = svgHtml;
                 }
             }, [name, size, className]);
-            return <svg ref={iconRef}></svg>;
+            return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} {...props}></span>;
         };
+
+        // 3. 手動註冊畫面上用到的所有圖示 (包含 v1.16/v1.17 新增的圖示)
+        const Database = (p) => <LucideIcon name="database" {...p} />;
+        const Search = (p) => <LucideIcon name="search" {...p} />;
+        const TrendingUp = (p) => <LucideIcon name="trending-up" {...p} />;
+        const FileText = (p) => <LucideIcon name="file-text" {...p} />;
+        const Settings = (p) => <LucideIcon name="settings" {...p} />;
+        const Plus = (p) => <LucideIcon name="plus" {...p} />;
+        const Trash2 = (p) => <LucideIcon name="trash-2" {...p} />;
+        const MessageCircle = (p) => <LucideIcon name="message-circle" {...p} />;
+        const GripVertical = (p) => <LucideIcon name="grip-vertical" {...p} />;
+        const CheckCircle2 = (p) => <LucideIcon name="check-circle-2" {...p} />;
+        const ChevronDown = (p) => <LucideIcon name="chevron-down" {...p} />;
+        const Cpu = (p) => <LucideIcon name="cpu" {...p} />;
+        const Globe = (p) => <LucideIcon name="globe" {...p} />;
+        const Users = (p) => <LucideIcon name="users" {...p} />;
+        const Zap = (p) => <LucideIcon name="zap" {...p} />;
+        const Bot = (p) => <LucideIcon name="bot" {...p} />;
+        const ArrowRight = (p) => <LucideIcon name="arrow-right" {...p} />;
+        const Download = (p) => <LucideIcon name="download" {...p} />;
+        const Edit3 = (p) => <LucideIcon name="edit-3" {...p} />;
+        const User = (p) => <LucideIcon name="user" {...p} />;
+        const Save = (p) => <LucideIcon name="save" {...p} />;
+        const Tag = (p) => <LucideIcon name="tag" {...p} />;
+        const MoreHorizontal = (p) => <LucideIcon name="more-horizontal" {...p} />;
+        const Layers = (p) => <LucideIcon name="layers" {...p} />;
+        const Sparkles = (p) => <LucideIcon name="sparkles" {...p} />;
+        const PanelLeftClose = (p) => <LucideIcon name="panel-left-close" {...p} />;
+        const PanelLeft = (p) => <LucideIcon name="panel-left" {...p} />;
+        const Languages = (p) => <LucideIcon name="languages" {...p} />;
+        const X = (p) => <LucideIcon name="x" {...p} />;
+        const AlertTriangle = (p) => <LucideIcon name="alert-triangle" {...p} />;
+        const ArrowDown = (p) => <LucideIcon name="arrow-down" {...p} />;
+        const ArrowUp = (p) => <LucideIcon name="arrow-up" {...p} />;
+        const GitMerge = (p) => <LucideIcon name="git-merge" {...p} />;
+        const GitBranch = (p) => <LucideIcon name="git-branch" {...p} />;
+        const ArrowDownUp = (p) => <LucideIcon name="arrow-down-up" {...p} />;
+        const ArrowLeft = (p) => <LucideIcon name="arrow-left" {...p} />;
+        const ArrowRightLeft = (p) => <LucideIcon name="arrow-right-left" {...p} />;
+        const Upload = (p) => <LucideIcon name="upload" {...p} />;
+        const FileJson = (p) => <LucideIcon name="file-json" {...p} />;
+
+        // =========================================================================
+        // 4. SSOT v1.17.0 商業邏輯代碼 (完整封裝版)
+        // =========================================================================
+
+        const APP_VERSION = "v1.17.0 (GitHub 部署版)";
+        const APP_UPDATE_NOTE = "Sales / MKT Agent Builder - Unlimited Vertical Sequence";
 
         const DICT = {
           zh: {
-            appTitle: 'Sales / MKT Agent Builder', flow: 'Flow', switchFlow: '切換：', newFlow: '新建 Flow',
-            unsaved: '未儲存 (In-Memory)', export: '匯出架構圖', agentLib: '企業 Agent 庫',
-            addAgent: '新增元件', addPhase: '新增區塊', addNto1: '多對一 (匯聚)', add1toN: '一對多 (擴散)',
-            addVertical: '垂直關聯 (上下)', dropInputs: '拖曳至此 (可多個)', dropTarget: '拖曳 1 個至此',
-            switchDir: '切換方向', dragHere: '拖曳元件至此', settingsTitleAgent: '元件設定',
-            settingsTitleLane: '區塊設定', mode: '運作模式', aiOnly: '純 AI 自動化',
-            humanAi: '人機協作審核', humanOnly: '單純人為作業', close: '關閉'
+            appTitle: 'Sales / MKT Agent Builder',
+            flow: 'Flow',
+            switchFlow: '切換：',
+            newFlow: '新建 Flow',
+            unsaved: '未儲存 (In-Memory)',
+            export: '匯出圖片',
+            exportJson: '匯出 JSON',
+            importJson: '匯入 JSON',
+            importSuccess: '工作流匯入成功！',
+            importError: '匯入失敗：檔案格式不正確或已損壞。',
+            agentLib: '企業 Agent 庫',
+            addAgent: '新增元件',
+            addPhase: '新增區塊',
+            addNto1: '多對一 (匯聚)',
+            add1toN: '一對多 (擴散)',
+            addVertical: '垂直關聯 (上下)',
+            dropInputs: '拖曳至此 (可多個)',
+            dropTarget: '拖曳 1 個至此',
+            switchDir: '切換方向',
+            dragHere: '拖曳元件至此',
+            settingsTitleAgent: '元件設定',
+            settingsTitleLane: '區塊設定',
+            settingsTitleScenario: '工作流全域設定',
+            settingsTitleCategory: '分類設定',
+            mode: '運作模式 (Operation Mode)',
+            aiOnly: '純 AI 自動化',
+            humanAi: '人機協作審核',
+            humanOnly: '單純人為作業',
+            close: '關閉',
+            agentName: '主標題',
+            agentDesc: '功能描述',
+            tags: '共用標籤 (Tags)',
+            addTagPlaceholder: '輸入標籤後按 Enter 新增...',
+            phaseName: '區塊標題',
+            phaseTheme: '視覺主題標籤',
+            flowName: '工作流標題 (Flow Name)',
+            bindSources: '綁定資料庫 / API',
+            typeEnter: '輸入後按 Enter 新增...',
+            feedback: '意見回饋',
+            feedbackGlobal: '工作流全域意見回饋',
+            noComments: '尚無留言。',
+            typeFeedback: '輸入回饋，按 Enter 送出...',
+            defaultAgentName: '新元件',
+            defaultAgentDesc: 'Action / Data',
+            defaultPhaseName: '新區塊',
+            deleteAgent: '刪除此元件',
+            deletePhase: '刪除此區塊',
+            deleteGroup: '刪除此組合區塊 (內部元件將一併移除)',
+            confirmDeleteAgent: '確定要刪除此元件嗎？注意：這會將該元件從所有畫布中一併移除！',
+            confirmDeletePhase: '確定要刪除此區塊嗎？這將清空區塊內的所有配置。',
+            confirmAction: '確認刪除',
+            cancel: '取消',
+            exporting: '高清架構圖生成中...',
+            exportSuccessMsg: '匯出成功！',
+            downloading: '下載 2x 高清 PNG',
+            exportDesc: '系統將擷取目前的畫布節點，並匯出成具備 Retina 解析度、透明背景的架構圖。'
           },
           en: {
-            appTitle: 'Agent Builder', flow: 'Flow', switchFlow: 'Switch:', newFlow: 'New Flow',
-            unsaved: 'In-Memory', export: 'Export', agentLib: 'Agent Library',
-            addAgent: 'Add Element', addPhase: 'Add Phase', addNto1: 'Merge (N➔1)', add1toN: 'Split (1➔N)',
-            addVertical: 'Vertical', dropInputs: 'Drop items', dropTarget: 'Drop 1 item',
-            switchDir: 'Switch Dir', dragHere: 'Drop here', settingsTitleAgent: 'Element Settings',
-            settingsTitleLane: 'Phase Settings', mode: 'Mode', aiOnly: 'AI Only',
-            humanAi: 'Human-in-the-Loop', humanOnly: 'Human Only', close: 'Close'
+            appTitle: 'Sales / MKT Agent Builder',
+            flow: 'Flow',
+            switchFlow: 'Switch:',
+            newFlow: 'New Flow',
+            unsaved: 'Unsaved (In-Memory)',
+            export: 'Export PNG',
+            exportJson: 'Export JSON',
+            importJson: 'Import JSON',
+            importSuccess: 'Workflow imported successfully!',
+            importError: 'Import failed: Invalid format or corrupted file.',
+            agentLib: 'Enterprise Agent Library',
+            addAgent: 'Add Element',
+            addPhase: 'Add Phase',
+            addNto1: 'Merge (N➔1)',
+            add1toN: 'Split (1➔N)',
+            addVertical: 'Vertical',
+            dropInputs: 'Drop items here (Multiple)',
+            dropTarget: 'Drop 1 item here',
+            switchDir: 'Switch Direction',
+            dragHere: 'Drop elements here',
+            settingsTitleAgent: 'Element Settings',
+            settingsTitleLane: 'Phase Settings',
+            settingsTitleScenario: 'Global Flow Settings',
+            settingsTitleCategory: 'Category Settings',
+            mode: 'Operation Mode',
+            aiOnly: 'AI Only',
+            humanAi: 'Human-in-the-Loop',
+            humanOnly: 'Human Only',
+            close: 'Close',
+            agentName: 'Main Title',
+            agentDesc: 'Functional Description',
+            tags: 'Shared Tags',
+            addTagPlaceholder: 'Type tag and press Enter...',
+            phaseName: 'Phase Title',
+            phaseTheme: 'Visual Theme Label',
+            flowName: 'Flow Title',
+            bindSources: 'Bind Database / API',
+            typeEnter: 'Type and press Enter...',
+            feedback: 'Feedback & Comments',
+            feedbackGlobal: 'Global Flow Feedback',
+            noComments: 'No comments yet.',
+            typeFeedback: 'Type feedback, press Enter...',
+            defaultAgentName: 'New Element',
+            defaultAgentDesc: 'Action / Data',
+            defaultPhaseName: 'New Phase',
+            deleteAgent: 'Delete Element',
+            deletePhase: 'Delete Phase',
+            deleteGroup: 'Delete Group Block (items inside will be removed)',
+            confirmDeleteAgent: 'Are you sure? WARNING: This will also remove the element from all active flow canvases!',
+            confirmDeletePhase: 'Are you sure you want to delete this phase?',
+            confirmAction: 'Confirm',
+            cancel: 'Cancel',
+            exporting: 'Generating High-Res Architecture...',
+            exportSuccessMsg: 'Export Successful!',
+            downloading: 'Download 2x PNG',
+            exportDesc: 'The system will capture the current canvas and export it as a Retina-resolution, transparent-background architecture PNG.'
           }
         };
 
+        const getLoc = (textObj, lang) => {
+          if (typeof textObj === 'object' && textObj !== null) {
+            return textObj[lang] || textObj.en || '';
+          }
+          return textObj || ''; 
+        };
+
         const INITIAL_CATEGORIES = [
-          { id: 'cat_1', name: { zh: 'Marketing Oriented', en: 'Marketing Oriented' }, theme: 'blue' },
-          { id: 'cat_2', name: { zh: 'Sales Oriented', en: 'Sales Oriented' }, theme: 'orange' },
-          { id: 'cat_3', name: { zh: 'After-Sales Oriented', en: 'After-Sales Oriented' }, theme: 'green' }
+          { id: 'cat_1', name: { zh: 'Marketing Oriented (Pre-Sales)', en: 'Marketing Oriented (Pre-Sales)' }, theme: 'blue' },
+          { id: 'cat_2', name: { zh: 'Sales Oriented (In-Sales)', en: 'Sales Oriented (In-Sales)' }, theme: 'orange' },
+          { id: 'cat_3', name: { zh: 'After-Sales Oriented (Post-Sales)', en: 'After-Sales Oriented (Post-Sales)' }, theme: 'green' }
         ];
 
         const INITIAL_AGENT_LIBRARY = [
-          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理', en: 'Content Agent' }, subtitle: { zh: '生成行銷內容', en: 'Gen Content' }, mode: 'ai-only' },
-          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理', en: 'Intel Agent' }, subtitle: { zh: '蒐集競品資訊', en: 'Gather Intel' }, mode: 'ai-only' },
-          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求助理', en: 'RFQ Agent' }, subtitle: { zh: '建議產品組態', en: 'Suggest Config' }, mode: 'human-ai' },
-          { id: 'c1', categoryId: 'cat_3', name: { zh: '銷售促成', en: 'Sales Engagement' }, subtitle: { zh: 'Nego & Close Deal', en: 'Nego & Close' }, mode: 'human-only' },
-          { id: 'c4', categoryId: 'cat_3', name: { zh: '銷售代理', en: 'Sales Agent' }, subtitle: { zh: 'Product / CRM', en: 'Product / CRM' }, mode: 'ai-only' }
+          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理 (Content Generation)', en: 'Content Generation Agent' }, subtitle: { zh: '依客群與產品生成行銷內容並優化轉換，提升SEO / GEO成效', en: 'Generate marketing content and optimize conversion.' }, mode: 'ai-only', tags: ['Corporate Website', 'Content Mgmt. System'], comments: [] },
+          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理 (Marketing Intelligence)', en: 'Marketing Intelligence' }, subtitle: { zh: '蒐集競品市場資訊生成銷售決策洞察', en: 'Gather competitor info and generate sales insights.' }, mode: 'ai-only', tags: ['Corporate Website', 'Product Info. System'], comments: [] },
+          { id: 'a3', categoryId: 'cat_1', name: { zh: '新客發掘助理 (New Customer Acquisition)', en: 'New Customer Acquisition' }, subtitle: { zh: '掃描社群與產業名單發掘潛在客戶名單', en: 'Scan social and industry lists for potential leads.' }, mode: 'ai-only', tags: ['Salesforce', 'Corporate Website'], comments: [] },
+          { id: 'b1', categoryId: 'cat_2', name: { zh: '智能銷售拓展助理 (SDR Agent)', en: 'SDR Agent' }, subtitle: { zh: '協助業務進行first-touch，為業務省去時間，自動化的業務名單接觸與資格審查，讓業務專注於高潛力客戶', en: 'Assist sales with first-touch and automate lead qualification.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] },
+          { id: 'b2', categoryId: 'cat_2', name: { zh: '客戶360度全視角顧問 (C-360 Advisor)', en: 'C-360 Advisor' }, subtitle: { zh: '彙整跨部門的服務與銷售紀錄，主動提供該客戶全貌洞察', en: 'Consolidate cross-department records for full customer insights.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)', 'Service Records'], comments: [] },
+          { id: 'b3', categoryId: 'cat_2', name: { zh: '商務摘要助理 (MS Copilot for Salesforce)', en: 'MS Copilot for Salesforce' }, subtitle: { zh: '利用Microsoft Copilot 串聯，針對SFDC中的客戶商機進行摘要分析，為業務導航', en: 'Use Copilot to summarize and analyze SFDC opportunities.' }, mode: 'human-ai', tags: ['Salesforce'], comments: [] },
+          { id: 'b4', categoryId: 'cat_2', name: { zh: '商機預測評分助理 (Oppty Scoring Agent)', en: 'Oppty Scoring Agent' }, subtitle: { zh: '根據歷史交易數據與近期互動軌跡，動態給予商機分數並預測贏率', en: 'Score opportunities dynamically based on historical data.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] }, 
+          { id: 'b5', categoryId: 'cat_2', name: { zh: '客戶數據洞察助理 (CDP Insight Agent)', en: 'CDP Insight Agent' }, subtitle: { zh: '結合即時市場趨勢與企業第一方數據，主動發掘潛在的交叉銷售機會', en: 'Combine market trends and 1st-party data for cross-selling.' }, mode: 'ai-only', tags: ['Corporate Website', 'Salesforce', 'ERP (SAP)'], comments: [] },
+          { id: 'b6', categoryId: 'cat_2', name: { zh: '系統維護與配置助理 (Sys. Setup Agent)', en: 'Sys. Setup Agent' }, subtitle: { zh: '協助管理員快速設定環境，AI提供設定路徑指引或協助自動化佈署', en: 'Assist admins with fast environment setup and deployment.' }, mode: 'ai-only', tags: ['Product Info. System', 'Knowledge Bases'], comments: [] },
+          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求請求助理 (RFQ Agent)', en: 'RFQ Agent' }, subtitle: { zh: '協助解析客戶詢價與需求，並自動建議產品組態', en: 'Parse customer RFQs and suggest product configurations.' }, mode: 'human-ai', tags: ['ERP (SAP)', 'Product Info. System'], comments: [] },
+          { id: 'c1', categoryId: 'cat_3', name: { zh: '智能客服助理 (Customer Service Agent)', en: 'Customer Service Agent' }, subtitle: { zh: '協助 AE 進行工單預處理並提供最佳解答建議，節省工單處理時間與人力成本。', en: 'Pre-process tickets and provide solution suggestions.' }, mode: 'ai-only', tags: ['Knowledge Bases', 'Service Records', 'FAE / PAE Databases'], comments: [] },
+          { id: 'c2', categoryId: 'cat_3', name: { zh: '線上諮詢回覆助理 (Pre-sales Bot)', en: 'Pre-sales Bot' }, subtitle: { zh: '提供 24 小時不間斷線上諮詢服務，引導客戶精準取得產品資訊並即時解答疑問。', en: 'Provide 24/7 online consultation and product info.' }, mode: 'ai-only', tags: ['Corporate Website', 'Knowledge Bases'], comments: [] },
+          { id: 'c3', categoryId: 'cat_3', name: { zh: '沉睡客戶活化助理 (Sleeping to Activation)', en: 'Sleeping to Activation' }, subtitle: { zh: '主動辨識長時間未交易的帳戶，並與SDR Agent合作進行客戶活化', en: 'Identify dormant accounts and collaborate with SDRs to activate.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] },
+          { id: 'c4', categoryId: 'cat_3', name: { zh: '對話紀錄分析助理 (Chat Records Agent)', en: 'Chat Records Agent' }, subtitle: { zh: '深度分析歷史對話紀錄與客戶資料，自動篩選並識別具備高潛在價值的商業客戶。', en: 'Analyze chat history to identify high-value prospects.' }, mode: 'ai-only', tags: ['Service Records', 'Salesforce'], comments: [] },
+          { id: 'd1', categoryId: 'cat_1', name: { zh: 'Social Engagement Agent', en: 'Social Engagement Agent' }, subtitle: { zh: '自動在論壇與社群平台進行互動，初步發掘潛在客戶', en: 'Auto interact on social platforms to discover leads.' }, mode: 'ai-only', tags: ['Reddit', 'forum', 'linkedin'], comments: [] },
+          { id: 'd2', categoryId: 'cat_1', name: { zh: 'Lead Discovery Agent', en: 'Lead Discovery Agent' }, subtitle: { zh: '主動掃描標案網與專業平台，發掘高價值潛在名單', en: 'Proactively scan platforms for high-value leads.' }, mode: 'ai-only', tags: ['LinkedIn', '標案', 'public info.'], comments: [] },
+          { id: 'd3', categoryId: 'cat_1', name: { zh: 'Lead Enrichment Agent', en: 'Lead Enrichment Agent' }, subtitle: { zh: '整合多方公開資訊，豐富潛在客戶的背景資料 (Enrichment)', en: 'Enrich lead profiles using multiple public sources.' }, mode: 'ai-only', tags: ['Linkedin', 'public info.'], comments: [] },
+          { id: 'd4', categoryId: 'cat_2', name: { zh: 'Scoring (AI & Human)', en: 'Scoring (AI & Human)' }, subtitle: { zh: '根據業務規則與 AI 預測模型，為名單進行優先級評分', en: 'Score leads priority based on rules and AI models.' }, mode: 'human-ai', tags: ['Rule & AI base', 'Sales Identify'], comments: [] },
+          { id: 'd5', categoryId: 'cat_3', name: { zh: 'SDR Agent', en: 'SDR Agent' }, subtitle: { zh: '自動化進行第一波接觸 (Reach out) 並分派合格名單', en: 'Automate first reach out and dispatch qualified leads.' }, mode: 'ai-only', tags: ['Auto Reach out', 'Dispatch'], comments: [] },
+          { id: 'd6', categoryId: 'cat_3', name: { zh: 'Sales Engagement', en: 'Sales Engagement' }, subtitle: { zh: '業務人員進行實質談判與推進，完成最終交易 (Close Deal)', en: 'Sales reps negotiate and close deals.' }, mode: 'human-only', tags: ['Nego & Close Deal'], comments: [] },
+          { id: 'd7', categoryId: 'cat_3', name: { zh: 'Sales Agent', en: 'Sales Agent' }, subtitle: { zh: '提供產品推薦、CRM 紀錄更新等業務輔助支援', en: 'Provide support like product recomm and CRM updates.' }, mode: 'ai-only', tags: ['Product', 'Recomm', 'CRM'], comments: [] }
         ];
 
         const THEME_MAP = {
-          blue: { bg: 'bg-[#0070c0]', cardBg: 'bg-blue-50', cardBorder: 'border-blue-200', cardText: 'text-blue-900', border: 'border-[#0070c0]' },
-          orange: { bg: 'bg-[#ed7d31]', cardBg: 'bg-orange-50', cardBorder: 'border-orange-200', cardText: 'text-orange-900', border: 'border-[#ed7d31]' },
-          green: { bg: 'bg-[#70ad47]', cardBg: 'bg-emerald-50', cardBorder: 'border-emerald-200', cardText: 'text-emerald-900', border: 'border-[#70ad47]' },
-          slate: { bg: 'bg-slate-500', cardBg: 'bg-slate-100', cardBorder: 'border-slate-300', cardText: 'text-slate-800', border: 'border-slate-500' }
+          blue: { bg: 'bg-[#0070c0]', text: 'text-[#0070c0]', border: 'border-[#0070c0]', lightBg: 'bg-[#f8fafd]', cardBg: 'bg-blue-50', cardBorder: 'border-blue-200', cardText: 'text-blue-900', tagBg: 'bg-blue-100', tagText: 'text-blue-700' },
+          orange: { bg: 'bg-[#ed7d31]', text: 'text-[#ed7d31]', border: 'border-[#ed7d31]', lightBg: 'bg-[#fffdfaf5]', cardBg: 'bg-orange-50', cardBorder: 'border-orange-200', cardText: 'text-orange-900', tagBg: 'bg-orange-100', tagText: 'text-orange-700' },
+          green: { bg: 'bg-[#70ad47]', text: 'text-[#70ad47]', border: 'border-[#70ad47]', lightBg: 'bg-[#f9fcf8]', cardBg: 'bg-emerald-50', cardBorder: 'border-emerald-200', cardText: 'text-emerald-900', tagBg: 'bg-emerald-100', tagText: 'text-emerald-700' },
+          purple: { bg: 'bg-[#7030a0]', text: 'text-[#7030a0]', border: 'border-[#7030a0]', lightBg: 'bg-purple-50', cardBg: 'bg-purple-50', cardBorder: 'border-purple-200', cardText: 'text-purple-900', tagBg: 'bg-purple-100', tagText: 'text-purple-700' },
+          slate: { bg: 'bg-slate-500', text: 'text-slate-500', border: 'border-slate-500', lightBg: 'bg-slate-50', cardBg: 'bg-slate-100', cardBorder: 'border-slate-300', cardText: 'text-slate-800', tagBg: 'bg-slate-200', tagText: 'text-slate-600' }
         };
-
-        const getLoc = (textObj, lang) => (typeof textObj === 'object' ? textObj[lang] || textObj.en : textObj);
 
         function App() {
           const [lang, setLang] = useState('zh');
           const t = DICT[lang];
-          const [agentLibrary] = useState(INITIAL_AGENT_LIBRARY);
+
+          const [categories, setCategories] = useState(INITIAL_CATEGORIES);
+          const [agentLibrary, setAgentLibrary] = useState(INITIAL_AGENT_LIBRARY);
+          
           const [scenarios, setScenarios] = useState([
-            { id: 's1', name: { zh: '研華 AI 戰略對齊 (v1.15.0)', en: 'Advantech AI Alignment' }, 
+            { 
+              id: 's1', 
+              name: { zh: 'Leads Generation (預設範例)', en: 'Leads Generation' }, 
               lanes: [
-                { id: 'l1', name: {zh:'1 理解與分析', en:'1 Analysis'}, theme:'blue', nodes:[{ id:'hg_1', type:'horizontal', mode:'n-to-1', direction:'ltr', inputs:['a1', 'a2'], target:'b7' }] },
-                { id: 'l2', name: {zh:'2 執行與跟進', en:'2 Execution'}, theme:'orange', nodes:['c1'] },
-                { id: 'l3', name: {zh:'3 售後輔助', en:'3 Post-Sales'}, theme:'green', nodes:[{ id:'vg_1', type:'vertical', topId:'c1', bottomId:'c4', arrow:'up' }] }
-              ] 
+                { 
+                  id: 'lane_1', name: { zh: 'Lead Discovery', en: 'Lead Discovery' }, theme: 'blue', 
+                  nodes: [
+                    { id: 'hg_1', type: 'horizontal', mode: 'n-to-1', direction: 'ltr', inputs: ['d1', 'd2'], target: 'd3' }
+                  ], comments: [] 
+                },
+                { 
+                  id: 'lane_2', name: { zh: 'Scoring', en: 'Scoring' }, theme: 'orange', 
+                  nodes: ['d4'], comments: [] 
+                },
+                { 
+                  id: 'lane_3', name: { zh: 'Engagement & Close', en: 'Engagement & Close' }, theme: 'green', 
+                  nodes: [
+                    { id: 'hg_2', type: 'horizontal', mode: 'n-to-1', direction: 'ltr', inputs: ['d5', 'd7'], target: 'd6' }
+                  ], comments: [] 
+                }
+              ]
             }
           ]);
-          const [activeScenarioId] = useState('s1');
+          const [activeScenarioId, setActiveScenarioId] = useState('s1');
+          const [activePanel, setActivePanel] = useState(null); 
+          const [newComment, setNewComment] = useState('');
+          const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+          const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+          const [isExporting, setIsExporting] = useState(false);
+          const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null });
+
+          const dragSourceRef = useRef(null); 
           const dragPayloadRef = useRef(null);
+          const fileInputRef = useRef(null);
 
           const currentScenario = scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
+          const getAgentById = (id) => agentLibrary.find(a => a.id === id);
+          const getCategoryById = (id) => categories.find(c => c.id === id);
 
-          const handleDrop = (e, targetLaneId) => {
-            e.preventDefault(); e.stopPropagation();
-            const agentId = dragPayloadRef.current;
-            if (!agentId) return;
-            setScenarios(prev => prev.map(s => {
-                const newLanes = s.lanes.map(l => {
-                    const filtered = l.nodes.filter(n => n !== agentId);
-                    return l.id === targetLaneId ? { ...l, nodes: [...filtered, agentId] } : { ...l, nodes: filtered };
+          const handleExportJSON = () => {
+            const exportData = { version: APP_VERSION, timestamp: new Date().toISOString(), agentLibrary, scenarios };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `Advantech_Agent_Flow_${new Date().getTime()}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+          };
+
+          const handleImportJSON = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              try {
+                const importedData = JSON.parse(event.target.result);
+                if (importedData.agentLibrary && importedData.scenarios) {
+                  setAgentLibrary(importedData.agentLibrary);
+                  setScenarios(importedData.scenarios);
+                  setActiveScenarioId(importedData.scenarios[0]?.id || 's1');
+                  alert(t.importSuccess);
+                } else {
+                  throw new Error("Invalid structure");
+                }
+              } catch (err) {
+                console.error("Import Error:", err);
+                alert(t.importError);
+              }
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            };
+            reader.readAsText(file);
+          };
+
+          const handleExportPNG = async () => {
+            if (!window.html2canvas) return;
+            setIsExporting(true);
+            setTimeout(async () => {
+              try {
+                const canvasElement = document.getElementById('export-canvas');
+                if (!canvasElement) throw new Error("Canvas element not found");
+                const canvas = await window.html2canvas(canvasElement, {
+                  scale: 2, useCORS: true, backgroundColor: null, logging: false,
+                  onclone: (clonedDoc) => {
+                    const el = clonedDoc.getElementById('export-canvas');
+                    if (el) { el.style.background = 'transparent'; el.style.padding = '40px'; }
+                  }
                 });
-                return { ...s, lanes: newLanes };
+                const image = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = `Advantech_Architecture_${new Date().getTime()}.png`;
+                link.href = image; link.click(); setIsExportModalOpen(false);
+              } catch (err) { console.error("Export failed:", err); } finally { setIsExporting(false); }
+            }, 500); 
+          };
+
+          const updateEntity = (type, id, field, value) => {
+            if (type === 'agent') setAgentLibrary(agentLibrary.map(a => a.id === id ? { ...a, [field]: value } : a));
+            else if (type === 'lane') setScenarios(scenarios.map(s => s.id === activeScenarioId ? { ...s, lanes: s.lanes.map(l => l.id === id ? { ...l, [field]: value } : l) } : s));
+          };
+
+          const handleAddComment = (type, id) => {
+            if (!newComment.trim()) return;
+            const commentObj = { text: newComment.trim(), date: new Date().toLocaleString() };
+            if (type === 'agent') {
+              const agent = getAgentById(id);
+              updateEntity('agent', id, 'comments', [...(agent.comments || []), commentObj]);
+            } else if (type === 'lane') {
+              const lane = currentScenario.lanes.find(l => l.id === id);
+              updateEntity('lane', id, 'comments', [...(lane.comments || []), commentObj]);
+            }
+            setNewComment('');
+          };
+
+          const handleAddTag = (agentId, tag) => {
+            if (!tag.trim()) return;
+            setAgentLibrary(prev => prev.map(a => {
+              if (a.id === agentId) {
+                const currentTags = a.tags || [];
+                if (!currentTags.includes(tag.trim())) return { ...a, tags: [...currentTags, tag.trim()] };
+              }
+              return a;
             }));
           };
 
-          const AgentCard = ({ agentId, isInsideGroup }) => {
-            const agent = agentLibrary.find(a => a.id === agentId);
-            if (!agent) return null;
-            const aTheme = THEME_MAP[INITIAL_CATEGORIES.find(c => c.id === agent.categoryId)?.theme || 'slate'];
+          const handleRemoveTag = (agentId, tagToRemove) => {
+            setAgentLibrary(prev => prev.map(a => {
+              if (a.id === agentId) return { ...a, tags: (a.tags || []).filter(t => t !== tagToRemove) };
+              return a;
+            }));
+          };
+
+          const removeAgentFromAllLanes = (agentId) => {
+            setScenarios(prev => prev.map(s => {
+              if (s.id !== activeScenarioId) return s;
+              return {
+                ...s, lanes: s.lanes.map(l => {
+                  const newNodes = [];
+                  l.nodes.forEach(node => {
+                    if (typeof node === 'string') {
+                      if (node !== agentId) newNodes.push(node);
+                    } else if (node.type === 'horizontal') {
+                      newNodes.push({
+                        ...node,
+                        inputs: node.inputs ? node.inputs.filter(id => id !== agentId) : undefined,
+                        target: node.target === agentId ? null : node.target,
+                        source: node.source === agentId ? null : node.source,
+                        outputs: node.outputs ? node.outputs.filter(id => id !== agentId) : undefined
+                      });
+                    } else if (node.type === 'vertical') {
+                      newNodes.push({ ...node, items: node.items ? node.items.filter(id => id !== agentId) : [] });
+                    }
+                  });
+                  return { ...l, nodes: newNodes };
+                })
+              };
+            }));
+          };
+
+          const initiateDeleteAgent = (agentId) => {
+            setDeleteModal({ isOpen: true, title: t.deleteAgent, message: t.confirmDeleteAgent,
+              onConfirm: () => {
+                removeAgentFromAllLanes(agentId);
+                setAgentLibrary(prev => prev.filter(a => a.id !== agentId));
+                setActivePanel(null); setDeleteModal(prev => ({ ...prev, isOpen: false }));
+              }
+            });
+          };
+
+          const initiateDeleteLane = (laneId) => {
+            setDeleteModal({ isOpen: true, title: t.deletePhase, message: t.confirmDeletePhase,
+              onConfirm: () => {
+                setScenarios(prev => prev.map(s => s.id === activeScenarioId ? { ...s, lanes: s.lanes.filter(l => l.id !== laneId) } : s));
+                setActivePanel(null); setDeleteModal(prev => ({ ...prev, isOpen: false }));
+              }
+            });
+          };
+
+          const handleDeleteGroup = (laneId, groupId) => {
+            setDeleteModal({ isOpen: true, title: t.deleteGroup, message: t.confirmAction,
+              onConfirm: () => {
+                setScenarios(prev => prev.map(s => s.id === activeScenarioId ? {
+                  ...s, lanes: s.lanes.map(l => l.id === laneId ? { ...l, nodes: l.nodes.filter(n => typeof n === 'string' || n.id !== groupId) } : l)
+                } : s));
+                setDeleteModal(prev => ({ ...prev, isOpen: false }));
+              }
+            });
+          };
+
+          const handleCreateScenario = () => {
+            const newId = `s${Date.now()}`;
+            setScenarios([...scenarios, { id: newId, name: { zh: `${t.newFlow} ${scenarios.length + 1}`, en: `${t.newFlow} ${scenarios.length + 1}` }, lanes: [{ id: `l_${Date.now()}`, name: { zh: t.defaultPhaseName, en: t.defaultPhaseName }, theme: 'slate', nodes: [], comments: [] }] }]);
+            setActiveScenarioId(newId); setActivePanel(null);
+          };
+
+          const handleCreateLane = () => {
+            const newLaneId = `l_${Date.now()}`;
+            setScenarios(scenarios.map(s => s.id === activeScenarioId ? { ...s, lanes: [...s.lanes, { id: newLaneId, name: { zh: t.defaultPhaseName, en: t.defaultPhaseName }, theme: 'slate', nodes: [], comments: [] }] } : s));
+            setActivePanel({ type: 'lane', id: newLaneId });
+          };
+
+          const handleCreateNto1 = (laneId) => {
+            const newGroup = { id: `hg_${Date.now()}`, type: 'horizontal', mode: 'n-to-1', direction: 'ltr', inputs: [], target: null };
+            setScenarios(scenarios.map(s => s.id === activeScenarioId ? { ...s, lanes: s.lanes.map(l => l.id === laneId ? { ...l, nodes: [...l.nodes, newGroup] } : l) } : s));
+          };
+
+          const handleCreate1toN = (laneId) => {
+            const newGroup = { id: `hg_${Date.now()}`, type: 'horizontal', mode: '1-to-n', direction: 'ltr', source: null, outputs: [] };
+            setScenarios(scenarios.map(s => s.id === activeScenarioId ? { ...s, lanes: s.lanes.map(l => l.id === laneId ? { ...l, nodes: [...l.nodes, newGroup] } : l) } : s));
+          };
+
+          const handleCreateVertical = (laneId) => {
+            const newGroup = { id: `vg_${Date.now()}`, type: 'vertical', items: [], direction: 'down' };
+            setScenarios(scenarios.map(s => s.id === activeScenarioId ? { ...s, lanes: s.lanes.map(l => l.id === laneId ? { ...l, nodes: [...l.nodes, newGroup] } : l) } : s));
+          };
+
+          const toggleVerticalGroupDir = (laneId, groupId) => {
+            setScenarios(scenarios.map(s => s.id === activeScenarioId ? {
+              ...s, lanes: s.lanes.map(l => l.id === laneId ? {
+                ...l, nodes: l.nodes.map(n => typeof n === 'object' && n.id === groupId && n.type === 'vertical' ? { ...n, direction: n.direction === 'up' ? 'down' : 'up' } : n)
+              } : l)
+            } : s));
+          };
+
+          const toggleHorizontalDir = (laneId, groupId) => {
+            setScenarios(scenarios.map(s => s.id === activeScenarioId ? {
+              ...s, lanes: s.lanes.map(l => l.id === laneId ? {
+                ...l, nodes: l.nodes.map(n => typeof n === 'object' && n.id === groupId && n.type === 'horizontal' ? { ...n, direction: n.direction === 'rtl' ? 'ltr' : 'rtl' } : n)
+              } : l)
+            } : s));
+          };
+
+          const handleCreateAgent = (categoryId) => {
+            const newAgent = { id: `a_${Date.now()}`, categoryId, name: { zh: t.defaultAgentName, en: t.defaultAgentName }, subtitle: { zh: t.defaultAgentDesc, en: t.defaultAgentDesc }, mode: 'ai-only', tags: [], comments: [] };
+            setAgentLibrary([...agentLibrary, newAgent]); setActivePanel({ type: 'agent', id: newAgent.id });
+          };
+
+          const onDragStart = (e, source, payload) => {
+            dragSourceRef.current = source; dragPayloadRef.current = payload; e.dataTransfer.effectAllowed = 'move';
+          };
+
+          const handleDrop = (e, targetZoneId) => {
+            e.preventDefault(); e.stopPropagation(); 
+            const agentId = dragPayloadRef.current;
+            if (!agentId || !targetZoneId) return;
+
+            setScenarios(prev => {
+              let nextScenarios = prev.map(s => {
+                if (s.id !== activeScenarioId) return s;
+                return {
+                  ...s, lanes: s.lanes.map(l => {
+                    const newNodes = [];
+                    l.nodes.forEach(node => {
+                      if (typeof node === 'string') {
+                        if (node !== agentId) newNodes.push(node);
+                      } else if (node.type === 'horizontal') {
+                        newNodes.push({
+                          ...node,
+                          inputs: node.inputs ? node.inputs.filter(id => id !== agentId) : undefined,
+                          target: node.target === agentId ? null : node.target,
+                          source: node.source === agentId ? null : node.source,
+                          outputs: node.outputs ? node.outputs.filter(id => id !== agentId) : undefined
+                        });
+                      } else if (node.type === 'vertical') {
+                        newNodes.push({ ...node, items: node.items ? node.items.filter(id => id !== agentId) : [] });
+                      }
+                    });
+                    return { ...l, nodes: newNodes };
+                  })
+                };
+              });
+
+              nextScenarios = nextScenarios.map(s => {
+                if (s.id !== activeScenarioId) return s;
+                let newLanes = [...s.lanes];
+
+                if (targetZoneId.startsWith('lane_')) {
+                  newLanes = newLanes.map(l => l.id === targetZoneId ? { ...l, nodes: [...l.nodes, agentId] } : l);
+                } else {
+                  let zoneType = ''; let groupId = '';
+                  if (targetZoneId.endsWith('_inputs')) { zoneType = 'inputs'; groupId = targetZoneId.replace('_inputs', ''); }
+                  else if (targetZoneId.endsWith('_outputs')) { zoneType = 'outputs'; groupId = targetZoneId.replace('_outputs', ''); }
+                  else if (targetZoneId.endsWith('_target')) { zoneType = 'target'; groupId = targetZoneId.replace('_target', ''); }
+                  else if (targetZoneId.endsWith('_source')) { zoneType = 'source'; groupId = targetZoneId.replace('_source', ''); }
+                  else if (targetZoneId.endsWith('_v_append')) { zoneType = 'v_append'; groupId = targetZoneId.replace('_v_append', ''); }
+
+                  newLanes = newLanes.map(l => {
+                    const updatedNodes = l.nodes.map(node => {
+                      if (typeof node === 'object' && node.id === groupId) {
+                        if (zoneType === 'inputs') return { ...node, inputs: [...(node.inputs || []), agentId] };
+                        if (zoneType === 'outputs') return { ...node, outputs: [...(node.outputs || []), agentId] };
+                        if (zoneType === 'target') return { ...node, target: agentId };
+                        if (zoneType === 'source') return { ...node, source: agentId };
+                        if (zoneType === 'v_append') return { ...node, items: [...(node.items || []), agentId] };
+                      }
+                      return node;
+                    });
+                    return { ...l, nodes: updatedNodes };
+                  });
+                }
+                return { ...s, lanes: newLanes };
+              });
+              return nextScenarios;
+            });
+            dragSourceRef.current = null;
+          };
+
+          const AgentIcon = ({ mode }) => {
+            const common = "w-10 h-10 rounded-full flex items-center justify-center shadow-lg border text-white transition-all ring-2 ring-white";
+            if (mode === 'human-only') return <div className="mr-4 shrink-0 mt-0.5"><div className={`${common} bg-emerald-600 border-emerald-700`}><User size={18} /></div></div>;
             return (
-              <div draggable onDragStart={() => dragPayloadRef.current = agentId} className={`p-4 ${isInsideGroup ? 'mb-2' : 'mb-4'} ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl border-l-4 ${aTheme.border.replace('bg-', 'border-')} bg-white shadow-sm flex items-center`}>
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white mr-3"><LucideIcon name="Bot" size={14} /></div>
-                <div className="font-bold text-xs">{getLoc(agent.name, lang)}</div>
+              <div className="flex shrink-0 -space-x-4 mr-4 mt-0.5 items-center">
+                <div className={`relative z-20 ${common} bg-blue-600 border-blue-700 shadow-blue-900/10`}><Bot size={18} /></div>
+                {mode === 'human-ai' && <div className={`relative z-10 ${common} bg-orange-500 border-orange-600 shadow-orange-900/10`}><User size={18} /></div>}
               </div>
             );
           };
 
-          return (
-            <div className="flex flex-col h-screen w-full">
-              <nav className="h-14 bg-white border-b flex justify-between items-center px-6 shrink-0">
-                <div className="flex items-center space-x-2">
-                    <LucideIcon name="Layers" className="text-blue-900" size={20} />
-                    <span className="font-black uppercase text-sm tracking-tighter">{t.appTitle}</span>
+          const renderAgentCard = (agentId, laneId, isInsideGroup = false) => {
+            const agent = getAgentById(agentId);
+            if (!agent) return null;
+            const aTheme = THEME_MAP[getCategoryById(agent.categoryId)?.theme || 'slate'];
+            
+            return (
+              <div 
+                key={agentId} 
+                draggable 
+                onDragStart={e => onDragStart(e, `canvas_${laneId}`, agentId)}
+                onDragOver={e => { e.preventDefault(); e.stopPropagation(); }} 
+                onDrop={e => { e.preventDefault(); e.stopPropagation(); }}
+                onClick={(e) => { e.stopPropagation(); setActivePanel({type:'agent',id:agentId}); }} 
+                className={`group relative p-4 ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl shadow-sm hover:shadow-xl cursor-pointer transition-all border-l-4 ${aTheme.border.replace('bg-', 'border-')} flex items-start overflow-visible w-full bg-white/95 ${!isInsideGroup ? 'mb-6 w-80' : 'mb-3 last:mb-0 min-w-[280px]'}`}
+              >
+                <AgentIcon mode={agent.mode} />
+                <div className="flex-1 min-w-0 flex flex-col justify-center relative z-10">
+                  <div className="flex items-start justify-between">
+                    <div className={`font-extrabold text-[14px] ${aTheme.cardText} leading-[1.3] break-words flex-1 pr-2`}>{getLoc(agent.name, lang)}</div>
+                  </div>
+                  <div className={`text-[11px] font-semibold opacity-60 ${aTheme.cardText} leading-relaxed mt-1 break-words`}>{getLoc(agent.subtitle, lang)}</div>
+                  {agent.tags && agent.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {agent.tags.map((tag, idx) => (
+                        <span key={idx} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${aTheme.tagBg} ${aTheme.tagText} border ${aTheme.cardBorder}`}>{tag}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                <button onClick={(e) => { e.stopPropagation(); removeAgentFromAllLanes(agentId); }} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 hover:bg-white rounded-full transition-all shadow-sm z-20"><Trash2 size={14}/></button>
+              </div>
+            );
+          };
+
+          const renderDropzone = (zoneId, text) => (
+            <div 
+              onDragOver={e => { e.preventDefault(); e.stopPropagation(); }} 
+              onDrop={e => handleDrop(e, zoneId)} 
+              className="w-full min-h-[70px] min-w-[280px] flex items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white/50 text-[11px] text-slate-400 font-bold hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-colors cursor-crosshair mb-3 last:mb-0"
+            >{text}</div>
+          );
+
+          return (
+            <div className="flex flex-col h-screen w-full bg-[#f8f9fb] text-slate-800 overflow-hidden font-sans">
+              <nav className="h-14 bg-white border-b border-slate-200 flex justify-between items-center px-4 z-40 relative shadow-sm">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-6 h-6 bg-[#004098] rounded-md flex items-center justify-center text-white"><Layers size={14} /></div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold tracking-tight leading-tight">{t.appTitle}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[9px] font-bold text-slate-400 leading-none">{APP_VERSION}</span>
+                        <span className="text-[9px] text-slate-300 font-medium">|</span>
+                        <span className="text-[9px] font-semibold text-slate-400 italic leading-none">{APP_UPDATE_NOTE}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="h-4 w-px bg-slate-300"></div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t.flow}</span>
+                    <button onClick={() => setActivePanel({ type: 'scenario', id: activeScenarioId })} className="bg-slate-50 border border-slate-200 hover:border-[#004098] text-sm font-bold px-3 py-1.5 rounded-md flex items-center transition-all">
+                      <span className="truncate max-w-[200px]">{getLoc(currentScenario.name, lang)}</span>
+                      <Edit3 size={12} className="ml-2 text-slate-400" />
+                    </button>
+                    <select value={activeScenarioId} onChange={(e) => setActiveScenarioId(e.target.value)} className="text-xs text-slate-400 bg-transparent border-none cursor-pointer outline-none">
+                      {scenarios.map(s => <option key={s.id} value={s.id}>{t.switchFlow} {getLoc(s.name, lang)}</option>)}
+                    </select>
+                  </div>
+                </div>
+                
                 <div className="flex items-center space-x-2">
-                    <span className="text-[10px] font-bold text-slate-400 mr-4">v1.15.0 ENGINE</span>
-                    <button onClick={() => setLang(lang==='zh'?'en':'zh')} className="bg-slate-100 px-3 py-1.5 rounded-lg text-[10px] font-black">{lang==='zh'?'EN':'中文'}</button>
+                  <button onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')} className="flex items-center text-[10px] font-bold text-slate-500 px-3 py-1.5 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors mr-2">
+                    <Languages size={14} className="mr-1.5" /> {lang === 'zh' ? 'EN' : '中文'}
+                  </button>
+                  <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+                    <label className="flex items-center text-xs font-bold text-slate-600 px-3 py-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all cursor-pointer">
+                      <Upload size={14} className="mr-1.5" /> {t.importJson}
+                      <input type="file" accept=".json" onChange={handleImportJSON} ref={fileInputRef} className="hidden" />
+                    </label>
+                    <button onClick={handleExportJSON} className="flex items-center text-xs font-bold text-slate-600 px-3 py-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all">
+                      <FileJson size={14} className="mr-1.5" /> {t.exportJson}
+                    </button>
+                  </div>
+                  <button onClick={() => setIsExportModalOpen(true)} className="px-5 py-2 ml-2 bg-[#004098] text-white rounded-lg text-xs font-bold hover:bg-blue-800 shadow-md flex items-center transition-all">
+                    <Download size={14} className="mr-2" /> {t.export}
+                  </button>
                 </div>
               </nav>
+
               <div className="flex-1 flex overflow-hidden">
-                <aside className="w-72 border-r bg-white p-6 overflow-y-auto shrink-0">
-                    {INITIAL_CATEGORIES.map(cat => (
-                        <div key={cat.id} className="mb-6">
-                            <div className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">{getLoc(cat.name, lang)}</div>
-                            {agentLibrary.filter(a => a.categoryId === cat.id).map(a => (
-                                <div key={a.id} draggable onDragStart={() => dragPayloadRef.current = a.id} className="p-3 border rounded-xl mb-2 bg-slate-50 flex items-center cursor-grab hover:bg-white hover:shadow-md transition-all">
-                                    <LucideIcon name="Bot" className="mr-2 text-blue-600" size={14} />
-                                    <span className="text-xs font-bold text-slate-600">{getLoc(a.name, lang)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </aside>
-                <main className="flex-1 bg-[#f1f4f8] p-12 overflow-auto flex justify-center items-start">
-                    <div className="flex space-x-8">
-                        {currentScenario.lanes.map((lane, idx) => (
-                            <div key={lane.id} className="w-80 shrink-0">
-                                <div className={`${THEME_MAP[lane.theme].bg} text-white p-4 rounded-t-3xl font-black flex items-center shadow-lg relative z-10`}>
-                                    <span className="w-5 h-5 bg-white/20 rounded mr-2 flex items-center justify-center text-[10px]">{idx+1}</span>
-                                    {getLoc(lane.name, lang)}
-                                </div>
-                                <div onDragOver={e => e.preventDefault()} onDrop={e => handleDrop(e, lane.id)} className="bg-white/90 backdrop-blur-sm p-5 min-h-[600px] rounded-b-3xl border border-white shadow-2xl">
-                                    {lane.nodes.map((node, i) => {
-                                        if (typeof node === 'string') return <AgentCard key={i} agentId={node} />;
-                                        if (node.type === 'horizontal') return (
-                                            <div key={i} className="p-4 border-2 border-dashed rounded-[24px] mb-6 flex items-center justify-center bg-slate-50/50">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className="flex flex-col">{node.inputs.map(id => <AgentCard key={id} agentId={id} isInsideGroup />)}</div>
-                                                        <LucideIcon name="ArrowRight" size={20} className="text-slate-300" />
-                                                        <AgentCard agentId={node.target} isInsideGroup />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                        if (node.type === 'vertical') return (
-                                            <div key={i} className="p-4 border-2 border-dashed rounded-[24px] mb-6 flex flex-col items-center bg-slate-50/50">
-                                                <AgentCard agentId={node.topId} isInsideGroup />
-                                                <LucideIcon name="ArrowUp" size={20} className="text-slate-300 my-2" />
-                                                <AgentCard agentId={node.bottomId} isInsideGroup />
-                                            </div>
-                                        );
-                                        return null;
-                                    })}
-                                </div>
+                <aside className={`relative bg-white h-full transition-all duration-300 ${isSidebarOpen ? 'w-72 border-r' : 'w-0'} overflow-hidden shrink-0 z-30`}>
+                  <div className="w-72 flex flex-col h-full overflow-hidden">
+                    <header className="p-4 border-b flex justify-between items-center bg-slate-50/50">
+                      <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{t.agentLib}</h2>
+                      <button onClick={() => setIsSidebarOpen(false)} className="hover:bg-slate-200 p-1 rounded-md transition-colors"><PanelLeftClose size={16} className="text-slate-400" /></button>
+                    </header>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-8 no-scrollbar">
+                      {categories.map(cat => {
+                        const agents = agentLibrary.filter(a => a.categoryId === cat.id);
+                        const theme = THEME_MAP[cat.theme];
+                        return (
+                          <div key={cat.id}>
+                            <div className="flex items-center justify-between mb-4 text-[11px] font-bold text-slate-500">
+                              <div className="flex items-center space-x-2"><div className={`w-2 h-2 rounded-sm ${theme.bg}`} /><span>{getLoc(cat.name, lang)}</span></div>
                             </div>
-                        ))}
+                            <div className="space-y-3">
+                              {agents.map(a => (
+                                <div key={a.id} draggable onDragStart={e => onDragStart(e, 'library', a.id)} onClick={() => setActivePanel({type:'agent',id:a.id})} className={`p-4 border ${theme.cardBg} ${theme.cardBorder} rounded-xl cursor-grab hover:shadow-lg transition-all flex items-center relative border-l-4 ${theme.border.replace('bg-', 'border-')} overflow-hidden`}>
+                                  <AgentIcon mode={a.mode} />
+                                  <div className="flex-1 min-w-0 pr-6">
+                                    <div className={`font-bold text-[13px] ${theme.cardText} truncate`}>{getLoc(a.name, lang)}</div>
+                                    {a.tags && a.tags.length > 0 && (
+                                      <div className="flex gap-1 mt-1 overflow-hidden">
+                                        {a.tags.slice(0, 2).map((tag, idx) => <span key={idx} className={`text-[8px] font-bold px-1 py-0.5 rounded ${theme.tagBg} ${theme.tagText} truncate max-w-[50px]`}>{tag}</span>)}
+                                        {a.tags.length > 2 && <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${theme.tagBg} ${theme.tagText}`}>+{a.tags.length-2}</span>}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <GripVertical size={14} className="absolute right-2 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              ))}
+                              <button onClick={() => handleCreateAgent(cat.id)} className="w-full py-2 border border-dashed border-slate-200 text-[10px] font-bold text-slate-400 rounded-xl hover:bg-slate-50 transition-colors">+ {t.addAgent}</button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                  </div>
+                </aside>
+
+                <aside className={`relative bg-white h-full shadow-2xl transition-all duration-300 ${activePanel ? 'w-80 border-r' : 'w-0'} overflow-hidden shrink-0 z-40`}>
+                  {activePanel && (
+                    <div className="w-80 flex flex-col h-full">
+                      <header className="p-4 border-b flex justify-between items-center bg-slate-50/50">
+                        <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                          {activePanel.type === 'agent' ? t.settingsTitleAgent : activePanel.type === 'lane' ? t.settingsTitleLane : t.settingsTitleScenario}
+                        </h2>
+                        <div className="flex space-x-1">
+                          {(activePanel.type === 'agent' || activePanel.type === 'lane') && (
+                            <button onClick={() => activePanel.type === 'agent' ? initiateDeleteAgent(activePanel.id) : initiateDeleteLane(activePanel.id)} className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-md transition-all text-slate-400"><Trash2 size={16} /></button>
+                          )}
+                          <button onClick={() => setActivePanel(null)} className="p-1.5 hover:bg-slate-100 rounded-md transition-all"><X size={16} /></button>
+                        </div>
+                      </header>
+                      <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+                        {activePanel.type === 'agent' && (() => {
+                          const agent = getAgentById(activePanel.id);
+                          if (!agent) return null;
+                          const catTheme = THEME_MAP[getCategoryById(agent.categoryId)?.theme || 'slate'];
+                          
+                          return (
+                            <div className="space-y-6">
+                              <div><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.agentName}</label>
+                              <input value={getLoc(agent.name, lang)} onChange={e => updateEntity('agent', agent.id, 'name', e.target.value)} className="w-full mt-2 p-3 border border-slate-200 rounded-xl font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all" /></div>
+                              <div><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.agentDesc}</label>
+                              <textarea value={getLoc(agent.subtitle, lang)} onChange={e => updateEntity('agent', agent.id, 'subtitle', e.target.value)} className="w-full mt-2 p-3 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none" rows="3" /></div>
+                              
+                              <div className="pt-2">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center"><Tag size={12} className="mr-1.5"/> {t.tags}</label>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  {(agent.tags || []).map((tag, idx) => (
+                                    <span key={idx} className={`inline-flex items-center text-[10px] font-bold px-2 py-1 rounded-md ${catTheme.tagBg} ${catTheme.tagText} border ${catTheme.cardBorder}`}>
+                                      {tag}
+                                      <button onClick={() => handleRemoveTag(agent.id, tag)} className="ml-1.5 hover:text-red-500 transition-colors"><X size={10} /></button>
+                                    </span>
+                                  ))}
+                                </div>
+                                <input 
+                                  type="text" placeholder={t.addTagPlaceholder}
+                                  onKeyDown={(e) => { if(e.key === 'Enter') { handleAddTag(agent.id, e.target.value); e.target.value = ''; } }}
+                                  className="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-slate-50" 
+                                />
+                              </div>
+
+                              <div className="pt-2"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.mode}</label>
+                                <div className="mt-3 space-y-2 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                                  {['ai-only', 'human-ai', 'human-only'].map(m => (
+                                    <button key={m} onClick={() => updateEntity('agent', agent.id, 'mode', m)} className={`w-full py-2.5 text-[11px] font-bold rounded-xl transition-all ${agent.mode === m ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-200' : 'text-slate-500 hover:bg-slate-200'}`}>
+                                      {m === 'ai-only' ? t.aiOnly : m === 'human-ai' ? t.humanAi : t.humanOnly}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="pt-4 border-t border-slate-100">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center"><MessageCircle size={12} className="mr-1.5"/> {t.feedback}</label>
+                                <div className="space-y-3 mb-3 max-h-40 overflow-y-auto no-scrollbar">
+                                  {(!agent.comments || agent.comments.length === 0) ? (
+                                    <div className="text-xs text-slate-400 italic">{t.noComments}</div>
+                                  ) : (
+                                    agent.comments.map((c, i) => (
+                                      <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <div className="text-xs text-slate-700">{c.text}</div>
+                                        <div className="text-[9px] text-slate-400 mt-1.5">{c.date}</div>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                                <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} onKeyDown={e => { if(e.key === 'Enter') { handleAddComment('agent', agent.id); } }} placeholder={t.typeFeedback} className="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white" />
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        {activePanel.type === 'lane' && (() => {
+                          const lane = currentScenario.lanes.find(l => l.id === activePanel.id);
+                          if (!lane) return null;
+                          return (
+                            <div className="space-y-6">
+                              <div><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.phaseName}</label>
+                              <input value={getLoc(lane.name, lang)} onChange={e => updateEntity('lane', lane.id, 'name', e.target.value)} className="w-full mt-2 p-3 border border-slate-200 rounded-xl font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all" /></div>
+                              
+                              <div className="pt-4 border-t border-slate-100">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center"><MessageCircle size={12} className="mr-1.5"/> {t.feedback}</label>
+                                <div className="space-y-3 mb-3 max-h-40 overflow-y-auto no-scrollbar">
+                                  {(!lane.comments || lane.comments.length === 0) ? (
+                                    <div className="text-xs text-slate-400 italic">{t.noComments}</div>
+                                  ) : (
+                                    lane.comments.map((c, i) => (
+                                      <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                        <div className="text-xs text-slate-700">{c.text}</div>
+                                        <div className="text-[9px] text-slate-400 mt-1.5">{c.date}</div>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                                <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)} onKeyDown={e => { if(e.key === 'Enter') { handleAddComment('lane', lane.id); } }} placeholder={t.typeFeedback} className="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white" />
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                </aside>
+
+                <main className="flex-1 min-w-0 relative bg-[#f1f4f8] overflow-auto p-12 flex justify-center items-start no-scrollbar">
+                  <div className="absolute inset-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+                  {!isSidebarOpen && (
+                    <button onClick={() => setIsSidebarOpen(true)} className="absolute left-0 top-6 bg-white border border-l-0 p-3 rounded-r-xl shadow-lg text-slate-400 hover:text-blue-600 transition-all z-20">
+                      <PanelLeft size={18} />
+                    </button>
+                  )}
+                  
+                  <div id="export-canvas" className="flex space-x-12 pb-32 pl-8"> 
+                    {currentScenario.lanes.map((lane, idx) => {
+                      const theme = THEME_MAP[lane.theme] || THEME_MAP.slate;
+                      return (
+                        <div key={lane.id} className="relative shrink-0 flex flex-col group/lane w-max min-w-[360px]">
+                          <div onClick={() => setActivePanel({type:'lane', id:lane.id})} className={`px-6 py-5 ${theme.bg} text-white rounded-t-[24px] flex justify-between items-center cursor-pointer hover:shadow-xl transition-all relative z-10 shadow-lg`}>
+                            <div className="flex items-center">
+                              <div className="w-6 h-6 bg-white/20 rounded-md flex items-center justify-center text-[11px] mr-4 font-bold border border-white/30 backdrop-blur-sm shadow-sm">{idx + 1}</div>
+                              <span className="font-extrabold text-[13px] uppercase tracking-wider">{getLoc(lane.name, lang)}</span>
+                            </div>
+                          </div>
+                          <div onDragOver={e => { e.preventDefault(); e.stopPropagation(); }} onDrop={e => handleDrop(e, `lane_${lane.id}`)} className="flex-1 p-6 bg-white/80 backdrop-blur-lg border-x border-b border-slate-200/40 rounded-b-[24px] min-h-[600px] flex flex-col shadow-2xl shadow-slate-200/50">
+                            {lane.nodes.map((node) => {
+                              if (typeof node === 'string') return renderAgentCard(node, lane.id);
+                              else if (typeof node === 'object' && node.type === 'horizontal') {
+                                const isRtl = node.direction === 'rtl';
+                                return (
+                                  <div key={node.id} className="relative w-max p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex items-center justify-center group/hg">
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover/hg:opacity-100 transition-opacity z-20"><Trash2 size={14}/></button>
+                                    <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
+                                      <div className="flex flex-col z-10 min-w-[280px]">
+                                        {node.inputs && node.inputs.map(id => renderAgentCard(id, lane.id, true))}
+                                        {renderDropzone(`${node.id}_inputs`, t.dropInputs)}
+                                      </div>
+                                      <div className="w-24 flex flex-col items-center justify-center shrink-0 relative z-10 mx-2">
+                                        {isRtl ? <ArrowLeft size={32} className="text-slate-300" /> : <ArrowRight size={32} className="text-slate-300" />}
+                                        <button onClick={() => toggleHorizontalDir(lane.id, node.id)} className="flex items-center space-x-1 text-[9px] font-bold text-slate-400 hover:text-blue-500 mt-2 bg-white px-2 py-1 rounded-full border shadow-sm transition-colors"><ArrowRightLeft size={10}/> <span>{t.switchDir}</span></button>
+                                      </div>
+                                      <div className="flex flex-col justify-center z-10 min-w-[280px]">
+                                        {node.target ? renderAgentCard(node.target, lane.id, true) : renderDropzone(`${node.id}_target`, t.dropTarget)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              else if (typeof node === 'object' && node.type === 'vertical') {
+                                return (
+                                  <div key={node.id} className="relative w-full p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex flex-col items-center group/vg">
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover/vg:opacity-100 transition-opacity z-20"><Trash2 size={14}/></button>
+                                    <div className="flex flex-col items-center w-full z-10">
+                                      {(node.items || []).map((agentId, i) => (
+                                        <Fragment key={agentId}>
+                                          {i > 0 && (
+                                            <div className="py-2 flex flex-col items-center relative z-10">
+                                              <div className="w-px h-6 bg-slate-400 relative">
+                                                 {node.direction === 'down' ? <div className="absolute bottom-[-3px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-slate-400"></div> : <div className="absolute top-[-3px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[6px] border-b-slate-400"></div>}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {renderAgentCard(agentId, lane.id, true)}
+                                        </Fragment>
+                                      ))}
+                                    </div>
+                                    {(node.items && node.items.length >= 2) && (
+                                      <button onClick={() => toggleVerticalGroupDir(lane.id, node.id)} className="flex items-center space-x-1 text-[9px] font-bold text-slate-400 hover:text-blue-500 mt-4 mb-1 bg-white px-3 py-1.5 rounded-full border shadow-sm transition-colors relative z-10">
+                                        {node.direction === 'down' ? <ArrowDown size={10}/> : <ArrowUp size={10}/>} <span>{t.switchDir}</span>
+                                      </button>
+                                    )}
+                                    <div className="mt-3 w-full relative z-10">
+                                      {renderDropzone(`${node.id}_v_append`, t.dropInputs)}
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
+                            
+                            {lane.nodes.length === 0 && (
+                              <div className="flex-1 min-h-[100px] border-2 border-dashed border-slate-200/60 rounded-[20px] flex items-center justify-center text-slate-300 text-[11px] font-extrabold uppercase p-10 text-center leading-loose mb-6">
+                                {t.dragHere}
+                              </div>
+                            )}
+                            
+                            <div className="flex flex-col space-y-2 mt-auto pt-6 border-t border-slate-100">
+                               <button onClick={handleCreateLane} className="w-full h-10 border-2 border-dashed border-slate-300/60 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-400 transition-all bg-white/50"><Plus size={16}/> <span className="text-[11px] font-bold ml-1 uppercase">{t.addPhase}</span></button>
+                               <div className="flex space-x-2">
+                                 <button onClick={() => handleCreateNto1(lane.id)} className="flex-1 h-9 border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:bg-blue-50 transition-all bg-white"><GitMerge size={14} className="mr-1.5"/> <span className="text-[10px] font-bold">{t.addNto1}</span></button>
+                                 <button onClick={() => handleCreate1toN(lane.id)} className="flex-1 h-9 border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:bg-orange-50 transition-all bg-white"><GitBranch size={14} className="mr-1.5"/> <span className="text-[10px] font-bold">{t.add1toN}</span></button>
+                                 <button onClick={() => handleCreateVertical(lane.id)} className="flex-1 h-9 border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:bg-green-50 transition-all bg-white"><ArrowDownUp size={14} className="mr-1.5"/> <span className="text-[10px] font-bold">{t.addVertical}</span></button>
+                               </div>
+                            </div>
+                          </div>
+                          {idx < currentScenario.lanes.length - 1 && <div className="absolute top-[280px] -right-[24px] translate-x-1/2 z-10 flex items-center justify-center w-10 h-10 bg-white border-4 border-[#f1f4f8] rounded-full shadow-sm text-slate-300 pointer-events-none" data-html2canvas-ignore="true"><ArrowRight size={20} className="stroke-[3]" /></div>}
+                        </div>
+                      );
+                    })}
+                    <button onClick={handleCreateLane} className="w-14 h-14 mt-4 border-2 border-dashed border-slate-300/60 rounded-[20px] flex items-center justify-center text-slate-300 hover:text-blue-500 hover:border-blue-500 transition-all shadow-md bg-white/50 backdrop-blur-sm" data-html2canvas-ignore="true"><Plus size={32}/></button>
+                  </div>
                 </main>
               </div>
+
+              {isExportModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+                  <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg p-12 text-center border border-slate-100">
+                    {isExporting ? <div className="py-12"><div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-8" /><h2 className="text-2xl font-black text-slate-800">Generating PNG...</h2></div> : <>
+                        <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[32px] flex items-center justify-center mx-auto mb-10 shadow-inner ring-4 ring-white"><Download size={48}/></div>
+                        <h2 className="text-3xl font-black text-slate-900 mb-4">{t.export}</h2><p className="text-sm text-slate-500 mb-12">{t.exportDesc}</p>
+                        <div className="flex justify-center space-x-5"><button onClick={() => setIsExportModalOpen(false)} className="px-10 py-4 bg-slate-100 text-slate-700 rounded-2xl font-black">CLOSE</button><button onClick={handleExportPNG} className="px-10 py-4 bg-[#004098] text-white rounded-2xl font-black shadow-2xl flex items-center"><Download size={22} className="mr-3"/>DOWNLOAD</button></div>
+                      </>}
+                  </div>
+                </div>
+              )}
+
+              {deleteModal.isOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+                  <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-sm p-8 border border-slate-100">
+                    <div className="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center mb-6"><AlertTriangle size={24} /></div>
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">{deleteModal.title}</h2><p className="text-sm text-slate-500 mb-8">{deleteModal.message}</p><div className="flex space-x-3"><button onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold">CANCEL</button><button onClick={deleteModal.onConfirm} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg shadow-red-200">CONFIRM</button></div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         }

@@ -86,11 +86,11 @@
         const FileJson = (p) => <LucideIcon name="file-json" {...p} />;
 
         // =========================================================================
-        // 4. SSOT v1.17.0 商業邏輯代碼 (完整封裝版)
+        // 4. SSOT v1.17.2 商業邏輯代碼 (修復刪除按鈕隱形問題)
         // =========================================================================
 
-        const APP_VERSION = "v1.17.0 (GitHub 部署版)";
-        const APP_UPDATE_NOTE = "Sales / MKT Agent Builder - Unlimited Vertical Sequence";
+        const APP_VERSION = "v1.17.2 (GitHub 部署版)";
+        const APP_UPDATE_NOTE = "UI Fix: Visible Delete Buttons";
 
         const DICT = {
           zh: {
@@ -611,7 +611,10 @@
                     </div>
                   )}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); removeAgentFromAllLanes(agentId); }} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-red-500 hover:bg-white rounded-full transition-all shadow-sm z-20"><Trash2 size={14}/></button>
+                {/* 🚀 UI FIX: 讓 Agent 卡片上的垃圾桶常駐顯示，不要再依賴 Hover */}
+                <button onClick={(e) => { e.stopPropagation(); removeAgentFromAllLanes(agentId); }} className="absolute top-2 right-2 p-2 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all shadow-sm z-20">
+                  <Trash2 size={14}/>
+                </button>
               </div>
             );
           };
@@ -719,9 +722,12 @@
                         <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                           {activePanel.type === 'agent' ? t.settingsTitleAgent : activePanel.type === 'lane' ? t.settingsTitleLane : t.settingsTitleScenario}
                         </h2>
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-2">
+                          {/* 🚀 UI FIX: 讓面板上的刪除鍵具有強烈紅色引導，不再只有灰底 Hover */}
                           {(activePanel.type === 'agent' || activePanel.type === 'lane') && (
-                            <button onClick={() => activePanel.type === 'agent' ? initiateDeleteAgent(activePanel.id) : initiateDeleteLane(activePanel.id)} className="p-1.5 hover:bg-red-50 hover:text-red-500 rounded-md transition-all text-slate-400"><Trash2 size={16} /></button>
+                            <button onClick={() => activePanel.type === 'agent' ? initiateDeleteAgent(activePanel.id) : initiateDeleteLane(activePanel.id)} className="p-1.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-all">
+                              <Trash2 size={16} />
+                            </button>
                           )}
                           <button onClick={() => setActivePanel(null)} className="p-1.5 hover:bg-slate-100 rounded-md transition-all"><X size={16} /></button>
                         </div>
@@ -843,7 +849,9 @@
                                 const isRtl = node.direction === 'rtl';
                                 return (
                                   <div key={node.id} className="relative w-max p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex items-center justify-center group/hg">
-                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover/hg:opacity-100 transition-opacity z-20"><Trash2 size={14}/></button>
+                                    {/* 🚀 UI FIX: 水平群組刪除鍵永久顯示 */}
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 p-1.5 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all z-20"><Trash2 size={14}/></button>
+                                    
                                     <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
                                       <div className="flex flex-col z-10 min-w-[280px]">
                                         {node.inputs && node.inputs.map(id => renderAgentCard(id, lane.id, true))}
@@ -863,7 +871,9 @@
                               else if (typeof node === 'object' && node.type === 'vertical') {
                                 return (
                                   <div key={node.id} className="relative w-full p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex flex-col items-center group/vg">
-                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover/vg:opacity-100 transition-opacity z-20"><Trash2 size={14}/></button>
+                                    {/* 🚀 UI FIX: 垂直群組刪除鍵永久顯示 */}
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 p-1.5 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all z-20"><Trash2 size={14}/></button>
+                                    
                                     <div className="flex flex-col items-center w-full z-10">
                                       {(node.items || []).map((agentId, i) => (
                                         <Fragment key={agentId}>

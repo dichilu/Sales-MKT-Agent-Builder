@@ -29,7 +29,7 @@
         // 1. 綁定 React Hooks
         const { useState, useRef, useEffect, Fragment } = React;
 
-        // 2. 自動橋接 Lucide 圖示 (🚀 UI FIX: 修正 CDN 圖示資料結構解析)
+        // 2. 自動橋接 Lucide 圖示 (🚀 UI FIX: 完美解析 CDN 圖示資料結構，防堵 TypeError)
         const LucideIcon = ({ name, size = 16, className = "", ...props }) => {
             const iconRef = useRef(null);
             useEffect(() => {
@@ -38,26 +38,40 @@
                     const pascalName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
                     const iconData = window.lucide.icons[pascalName] || window.lucide.icons[name];
 
-                    if (Array.isArray(iconData)) {
-                        const childrenHtml = iconData.map(c => {
-                            const tag = c[0];
-                            const attrs = c[1] || {};
-                            const attrString = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
-                            return `<${tag} ${attrString}></${tag}>`;
-                        }).join('');
-                        
-                        const svgHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${childrenHtml}</svg>`;
-                        iconRef.current.innerHTML = svgHtml;
+                    if (iconData) {
+                        try {
+                            // 🚀 核心修復：精準抽取子節點陣列 (Lucide 結構為: ["svg", {attrs}, [children]])
+                            let children = [];
+                            if (Array.isArray(iconData) && iconData.length === 3 && iconData[0] === 'svg') {
+                                children = iconData[2];
+                            } else if (Array.isArray(iconData)) {
+                                children = iconData;
+                            }
+
+                            const childrenHtml = children.map(c => {
+                                if (!Array.isArray(c)) return '';
+                                const tag = c[0];
+                                const attrs = c[1] || {};
+                                const attrString = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
+                                return `<${tag} ${attrString}></${tag}>`;
+                            }).join('');
+                            
+                            const svgHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${childrenHtml}</svg>`;
+                            if(iconRef.current) iconRef.current.innerHTML = svgHtml;
+                        } catch (err) {
+                            console.error("Icon Render Error:", err);
+                            if(iconRef.current) iconRef.current.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                        }
                     } else if (iconRef.current) {
                         // 防呆 X 標示
-                        iconRef.current.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                        iconRef.current.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
                     }
                 }
             }, [name, size, className]);
             return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} {...props}></span>;
         };
 
-        // 3. 手動註冊畫面上用到的所有圖示 (還原正確的圖示名稱)
+        // 3. 手動註冊畫面上用到的所有圖示
         const Database = (p) => <LucideIcon name="database" {...p} />;
         const Search = (p) => <LucideIcon name="search" {...p} />;
         const TrendingUp = (p) => <LucideIcon name="trending-up" {...p} />;
@@ -99,10 +113,10 @@
         const FileJson = (p) => <LucideIcon name="file-json" {...p} />;
 
         // =========================================================================
-        // 4. SSOT v1.17.5 商業邏輯代碼 (修復圖示渲染崩潰問題)
+        // 4. SSOT v1.17.6 商業邏輯代碼 (修復圖示渲染崩潰問題)
         // =========================================================================
 
-        const APP_VERSION = "v1.17.5 (GitHub 部署版)";
+        const APP_VERSION = "v1.17.6 (GitHub 部署版)";
         const APP_UPDATE_NOTE = "UI Fix: Icon Component Parsing Structure";
 
         const DICT = {

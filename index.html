@@ -23,7 +23,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* 🚀 UI FIX: 為畫布區打造客製化的優雅捲軸，取代預設醜陋樣式 */
+        /* 為畫布區打造客製化的優雅捲軸 */
         .canvas-scrollbar::-webkit-scrollbar { width: 14px; height: 14px; }
         .canvas-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .canvas-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; border: 4px solid #f1f4f8; }
@@ -118,11 +118,11 @@
         const FileJson = (p) => <LucideIcon name="file-json" {...p} />;
 
         // =========================================================================
-        // 4. SSOT v1.17.7 商業邏輯代碼 (修復畫布裁切與捲軸問題)
+        // 4. SSOT v1.17.10 商業邏輯代碼 (修復 JSX 語法錯誤並加入留言圖示)
         // =========================================================================
 
-        const APP_VERSION = "v1.17.7 (GitHub 部署版)";
-        const APP_UPDATE_NOTE = "UI Fix: Canvas Scrollbar & Left Overflow Issue";
+        const APP_VERSION = "v1.17.10 (GitHub 部署版)";
+        const APP_UPDATE_NOTE = "UI Fix: Syntax Error Resolved & Added Comment Badges";
 
         const DICT = {
           zh: {
@@ -250,34 +250,36 @@
           return textObj || ''; 
         };
 
+        // 🚀 DATA FIX: 徹底翻譯分類名稱
         const INITIAL_CATEGORIES = [
-          { id: 'cat_1', name: { zh: 'Marketing Oriented (Pre-Sales)', en: 'Marketing Oriented (Pre-Sales)' }, theme: 'blue' },
-          { id: 'cat_2', name: { zh: 'Sales Oriented (In-Sales)', en: 'Sales Oriented (In-Sales)' }, theme: 'orange' },
-          { id: 'cat_3', name: { zh: 'After-Sales Oriented (Post-Sales)', en: 'After-Sales Oriented (Post-Sales)' }, theme: 'green' }
+          { id: 'cat_1', name: { zh: '行銷導向 (Pre-Sales)', en: 'Marketing Oriented (Pre-Sales)' }, theme: 'blue' },
+          { id: 'cat_2', name: { zh: '業務銷售導向 (In-Sales)', en: 'Sales Oriented (In-Sales)' }, theme: 'orange' },
+          { id: 'cat_3', name: { zh: '售後服務導向 (Post-Sales)', en: 'After-Sales Oriented (Post-Sales)' }, theme: 'green' }
         ];
 
+        // 🚀 DATA FIX: 還原純中文標題 (移除擅自加上的英文括號)
         const INITIAL_AGENT_LIBRARY = [
-          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理 (Content Generation)', en: 'Content Generation Agent' }, subtitle: { zh: '依客群與產品生成行銷內容並優化轉換，提升SEO / GEO成效', en: 'Generate marketing content and optimize conversion.' }, mode: 'ai-only', tags: ['Corporate Website', 'Content Mgmt. System'], comments: [] },
-          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理 (Marketing Intelligence)', en: 'Marketing Intelligence' }, subtitle: { zh: '蒐集競品市場資訊生成銷售決策洞察', en: 'Gather competitor info and generate sales insights.' }, mode: 'ai-only', tags: ['Corporate Website', 'Product Info. System'], comments: [] },
-          { id: 'a3', categoryId: 'cat_1', name: { zh: '新客發掘助理 (New Customer Acquisition)', en: 'New Customer Acquisition' }, subtitle: { zh: '掃描社群與產業名單發掘潛在客戶名單', en: 'Scan social and industry lists for potential leads.' }, mode: 'ai-only', tags: ['Salesforce', 'Corporate Website'], comments: [] },
-          { id: 'b1', categoryId: 'cat_2', name: { zh: '智能銷售拓展助理 (SDR Agent)', en: 'SDR Agent' }, subtitle: { zh: '協助業務進行first-touch，為業務省去時間，自動化的業務名單接觸與資格審查，讓業務專注於高潛力客戶', en: 'Assist sales with first-touch and automate lead qualification.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] },
-          { id: 'b2', categoryId: 'cat_2', name: { zh: '客戶360度全視角顧問 (C-360 Advisor)', en: 'C-360 Advisor' }, subtitle: { zh: '彙整跨部門的服務與銷售紀錄，主動提供該客戶全貌洞察', en: 'Consolidate cross-department records for full customer insights.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)', 'Service Records'], comments: [] },
-          { id: 'b3', categoryId: 'cat_2', name: { zh: '商務摘要助理 (MS Copilot for Salesforce)', en: 'MS Copilot for Salesforce' }, subtitle: { zh: '利用Microsoft Copilot 串聯，針對SFDC中的客戶商機進行摘要分析，為業務導航', en: 'Use Copilot to summarize and analyze SFDC opportunities.' }, mode: 'human-ai', tags: ['Salesforce'], comments: [] },
-          { id: 'b4', categoryId: 'cat_2', name: { zh: '商機預測評分助理 (Oppty Scoring Agent)', en: 'Oppty Scoring Agent' }, subtitle: { zh: '根據歷史交易數據與近期互動軌跡，動態給予商機分數並預測贏率', en: 'Score opportunities dynamically based on historical data.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] }, 
-          { id: 'b5', categoryId: 'cat_2', name: { zh: '客戶數據洞察助理 (CDP Insight Agent)', en: 'CDP Insight Agent' }, subtitle: { zh: '結合即時市場趨勢與企業第一方數據，主動發掘潛在的交叉銷售機會', en: 'Combine market trends and 1st-party data for cross-selling.' }, mode: 'ai-only', tags: ['Corporate Website', 'Salesforce', 'ERP (SAP)'], comments: [] },
-          { id: 'b6', categoryId: 'cat_2', name: { zh: '系統維護與配置助理 (Sys. Setup Agent)', en: 'Sys. Setup Agent' }, subtitle: { zh: '協助管理員快速設定環境，AI提供設定路徑指引或協助自動化佈署', en: 'Assist admins with fast environment setup and deployment.' }, mode: 'ai-only', tags: ['Product Info. System', 'Knowledge Bases'], comments: [] },
-          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求請求助理 (RFQ Agent)', en: 'RFQ Agent' }, subtitle: { zh: '協助解析客戶詢價與需求，並自動建議產品組態', en: 'Parse customer RFQs and suggest product configurations.' }, mode: 'human-ai', tags: ['ERP (SAP)', 'Product Info. System'], comments: [] },
-          { id: 'c1', categoryId: 'cat_3', name: { zh: '智能客服助理 (Customer Service Agent)', en: 'Customer Service Agent' }, subtitle: { zh: '協助 AE 進行工單預處理並提供最佳解答建議，節省工單處理時間與人力成本。', en: 'Pre-process tickets and provide solution suggestions.' }, mode: 'ai-only', tags: ['Knowledge Bases', 'Service Records', 'FAE / PAE Databases'], comments: [] },
-          { id: 'c2', categoryId: 'cat_3', name: { zh: '線上諮詢回覆助理 (Pre-sales Bot)', en: 'Pre-sales Bot' }, subtitle: { zh: '提供 24 小時不間斷線上諮詢服務，引導客戶精準取得產品資訊並即時解答疑問。', en: 'Provide 24/7 online consultation and product info.' }, mode: 'ai-only', tags: ['Corporate Website', 'Knowledge Bases'], comments: [] },
-          { id: 'c3', categoryId: 'cat_3', name: { zh: '沉睡客戶活化助理 (Sleeping to Activation)', en: 'Sleeping to Activation' }, subtitle: { zh: '主動辨識長時間未交易的帳戶，並與SDR Agent合作進行客戶活化', en: 'Identify dormant accounts and collaborate with SDRs to activate.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] },
-          { id: 'c4', categoryId: 'cat_3', name: { zh: '對話紀錄分析助理 (Chat Records Agent)', en: 'Chat Records Agent' }, subtitle: { zh: '深度分析歷史對話紀錄與客戶資料，自動篩選並識別具備高潛在價值的商業客戶。', en: 'Analyze chat history to identify high-value prospects.' }, mode: 'ai-only', tags: ['Service Records', 'Salesforce'], comments: [] },
-          { id: 'd1', categoryId: 'cat_1', name: { zh: 'Social Engagement Agent', en: 'Social Engagement Agent' }, subtitle: { zh: '自動在論壇與社群平台進行互動，初步發掘潛在客戶', en: 'Auto interact on social platforms to discover leads.' }, mode: 'ai-only', tags: ['Reddit', 'forum', 'linkedin'], comments: [] },
-          { id: 'd2', categoryId: 'cat_1', name: { zh: 'Lead Discovery Agent', en: 'Lead Discovery Agent' }, subtitle: { zh: '主動掃描標案網與專業平台，發掘高價值潛在名單', en: 'Proactively scan platforms for high-value leads.' }, mode: 'ai-only', tags: ['LinkedIn', '標案', 'public info.'], comments: [] },
-          { id: 'd3', categoryId: 'cat_1', name: { zh: 'Lead Enrichment Agent', en: 'Lead Enrichment Agent' }, subtitle: { zh: '整合多方公開資訊，豐富潛在客戶的背景資料 (Enrichment)', en: 'Enrich lead profiles using multiple public sources.' }, mode: 'ai-only', tags: ['Linkedin', 'public info.'], comments: [] },
-          { id: 'd4', categoryId: 'cat_2', name: { zh: 'Scoring (AI & Human)', en: 'Scoring (AI & Human)' }, subtitle: { zh: '根據業務規則與 AI 預測模型，為名單進行優先級評分', en: 'Score leads priority based on rules and AI models.' }, mode: 'human-ai', tags: ['Rule & AI base', 'Sales Identify'], comments: [] },
-          { id: 'd5', categoryId: 'cat_3', name: { zh: 'SDR Agent', en: 'SDR Agent' }, subtitle: { zh: '自動化進行第一波接觸 (Reach out) 並分派合格名單', en: 'Automate first reach out and dispatch qualified leads.' }, mode: 'ai-only', tags: ['Auto Reach out', 'Dispatch'], comments: [] },
-          { id: 'd6', categoryId: 'cat_3', name: { zh: 'Sales Engagement', en: 'Sales Engagement' }, subtitle: { zh: '業務人員進行實質談判與推進，完成最終交易 (Close Deal)', en: 'Sales reps negotiate and close deals.' }, mode: 'human-only', tags: ['Nego & Close Deal'], comments: [] },
-          { id: 'd7', categoryId: 'cat_3', name: { zh: 'Sales Agent', en: 'Sales Agent' }, subtitle: { zh: '提供產品推薦、CRM 紀錄更新等業務輔助支援', en: 'Provide support like product recomm and CRM updates.' }, mode: 'ai-only', tags: ['Product', 'Recomm', 'CRM'], comments: [] }
+          { id: 'a1', categoryId: 'cat_1', name: { zh: '素材文本生成助理', en: 'Content Generation Agent' }, subtitle: { zh: '依客群與產品生成行銷內容並優化轉換，提升SEO / GEO成效', en: 'Generate marketing content and optimize conversion.' }, mode: 'ai-only', tags: ['Corporate Website', 'Content Mgmt. System'], comments: [] },
+          { id: 'a2', categoryId: 'cat_1', name: { zh: '市場情報助理', en: 'Marketing Intelligence' }, subtitle: { zh: '蒐集競品市場資訊生成銷售決策洞察', en: 'Gather competitor info and generate sales insights.' }, mode: 'ai-only', tags: ['Corporate Website', 'Product Info. System'], comments: [] },
+          { id: 'a3', categoryId: 'cat_1', name: { zh: '新客發掘助理', en: 'New Customer Acquisition' }, subtitle: { zh: '掃描社群與產業名單發掘潛在客戶名單', en: 'Scan social and industry lists for potential leads.' }, mode: 'ai-only', tags: ['Salesforce', 'Corporate Website'], comments: [] },
+          { id: 'b1', categoryId: 'cat_2', name: { zh: '智能銷售拓展助理', en: 'SDR Agent' }, subtitle: { zh: '協助業務進行first-touch，為業務省去時間，自動化的業務名單接觸與資格審查，讓業務專注於高潛力客戶', en: 'Assist sales with first-touch and automate lead qualification.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] },
+          { id: 'b2', categoryId: 'cat_2', name: { zh: '客戶360度全視角顧問', en: 'C-360 Advisor' }, subtitle: { zh: '彙整跨部門的服務與銷售紀錄，主動提供該客戶全貌洞察', en: 'Consolidate cross-department records for full customer insights.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)', 'Service Records'], comments: [] },
+          { id: 'b3', categoryId: 'cat_2', name: { zh: '商務摘要助理', en: 'MS Copilot for Salesforce' }, subtitle: { zh: '利用Microsoft Copilot 串聯，針對SFDC中的客戶商機進行摘要分析，為業務導航', en: 'Use Copilot to summarize and analyze SFDC opportunities.' }, mode: 'human-ai', tags: ['Salesforce'], comments: [] },
+          { id: 'b4', categoryId: 'cat_2', name: { zh: '商機預測評分助理', en: 'Oppty Scoring Agent' }, subtitle: { zh: '根據歷史交易數據與近期互動軌跡，動態給予商機分數並預測贏率', en: 'Score opportunities dynamically based on historical data.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] }, 
+          { id: 'b5', categoryId: 'cat_2', name: { zh: '客戶數據洞察助理', en: 'CDP Insight Agent' }, subtitle: { zh: '結合即時市場趨勢與企業第一方數據，主動發掘潛在的交叉銷售機會', en: 'Combine market trends and 1st-party data for cross-selling.' }, mode: 'ai-only', tags: ['Corporate Website', 'Salesforce', 'ERP (SAP)'], comments: [] },
+          { id: 'b6', categoryId: 'cat_2', name: { zh: '系統維護與配置助理', en: 'Sys. Setup Agent' }, subtitle: { zh: '協助管理員快速設定環境，AI提供設定路徑指引或協助自動化佈署', en: 'Assist admins with fast environment setup and deployment.' }, mode: 'ai-only', tags: ['Product Info. System', 'Knowledge Bases'], comments: [] },
+          { id: 'b7', categoryId: 'cat_2', name: { zh: '報價需求請求助理', en: 'RFQ Agent' }, subtitle: { zh: '協助解析客戶詢價與需求，並自動建議產品組態', en: 'Parse customer RFQs and suggest product configurations.' }, mode: 'human-ai', tags: ['ERP (SAP)', 'Product Info. System'], comments: [] },
+          { id: 'c1', categoryId: 'cat_3', name: { zh: '智能客服助理', en: 'Customer Service Agent' }, subtitle: { zh: '協助 AE 進行工單預處理並提供最佳解答建議，節省工單處理時間與人力成本。', en: 'Pre-process tickets and provide solution suggestions.' }, mode: 'ai-only', tags: ['Knowledge Bases', 'Service Records', 'FAE / PAE Databases'], comments: [] },
+          { id: 'c2', categoryId: 'cat_3', name: { zh: '線上諮詢回覆助理', en: 'Pre-sales Bot' }, subtitle: { zh: '提供 24 小時不間斷線上諮詢服務，引導客戶精準取得產品資訊並即時解答疑問。', en: 'Provide 24/7 online consultation and product info.' }, mode: 'ai-only', tags: ['Corporate Website', 'Knowledge Bases'], comments: [] },
+          { id: 'c3', categoryId: 'cat_3', name: { zh: '沉睡客戶活化助理', en: 'Sleeping to Activation' }, subtitle: { zh: '主動辨識長時間未交易的帳戶，並與SDR Agent合作進行客戶活化', en: 'Identify dormant accounts and collaborate with SDRs to activate.' }, mode: 'ai-only', tags: ['Salesforce', 'ERP (SAP)'], comments: [] },
+          { id: 'c4', categoryId: 'cat_3', name: { zh: '對話紀錄分析助理', en: 'Chat Records Agent' }, subtitle: { zh: '深度分析歷史對話紀錄與客戶資料，自動篩選並識別具備高潛在價值的商業客戶。', en: 'Analyze chat history to identify high-value prospects.' }, mode: 'ai-only', tags: ['Service Records', 'Salesforce'], comments: [] },
+          { id: 'd1', categoryId: 'cat_1', name: { zh: '社群互動助理', en: 'Social Engagement Agent' }, subtitle: { zh: '自動在論壇與社群平台進行互動，初步發掘潛在客戶', en: 'Auto interact on social platforms to discover leads.' }, mode: 'ai-only', tags: ['Reddit', 'forum', 'linkedin'], comments: [] },
+          { id: 'd2', categoryId: 'cat_1', name: { zh: '名單發掘助理', en: 'Lead Discovery Agent' }, subtitle: { zh: '主動掃描標案網與專業平台，發掘高價值潛在名單', en: 'Proactively scan platforms for high-value leads.' }, mode: 'ai-only', tags: ['LinkedIn', '標案', 'public info.'], comments: [] },
+          { id: 'd3', categoryId: 'cat_1', name: { zh: '名單資訊擴充助理', en: 'Lead Enrichment Agent' }, subtitle: { zh: '整合多方公開資訊，豐富潛在客戶的背景資料 (Enrichment)', en: 'Enrich lead profiles using multiple public sources.' }, mode: 'ai-only', tags: ['Linkedin', 'public info.'], comments: [] },
+          { id: 'd4', categoryId: 'cat_2', name: { zh: '優先級評分', en: 'Scoring (AI & Human)' }, subtitle: { zh: '根據業務規則與 AI 預測模型，為名單進行優先級評分', en: 'Score leads priority based on rules and AI models.' }, mode: 'human-ai', tags: ['Rule & AI base', 'Sales Identify'], comments: [] },
+          { id: 'd5', categoryId: 'cat_3', name: { zh: '智能銷售拓展助理', en: 'SDR Agent' }, subtitle: { zh: '自動化進行第一波接觸 (Reach out) 並分派合格名單', en: 'Automate first reach out and dispatch qualified leads.' }, mode: 'ai-only', tags: ['Auto Reach out', 'Dispatch'], comments: [] },
+          { id: 'd6', categoryId: 'cat_3', name: { zh: '業務實質推進', en: 'Sales Engagement' }, subtitle: { zh: '業務人員進行實質談判與推進，完成最終交易 (Close Deal)', en: 'Sales reps negotiate and close deals.' }, mode: 'human-only', tags: ['Nego & Close Deal'], comments: [] },
+          { id: 'd7', categoryId: 'cat_3', name: { zh: '業務輔助助理', en: 'Sales Agent' }, subtitle: { zh: '提供產品推薦、CRM 紀錄更新等業務輔助支援', en: 'Provide support like product recomm and CRM updates.' }, mode: 'ai-only', tags: ['Product', 'Recomm', 'CRM'], comments: [] }
         ];
 
         const THEME_MAP = {
@@ -295,23 +297,24 @@
           const [categories, setCategories] = useState(INITIAL_CATEGORIES);
           const [agentLibrary, setAgentLibrary] = useState(INITIAL_AGENT_LIBRARY);
           
+          // 🚀 DATA FIX: 翻譯預設場景與泳道標題
           const [scenarios, setScenarios] = useState([
             { 
               id: 's1', 
-              name: { zh: 'Leads Generation (預設範例)', en: 'Leads Generation' }, 
+              name: { zh: '潛在客戶發掘 (預設範例)', en: 'Leads Generation' }, 
               lanes: [
                 { 
-                  id: 'lane_1', name: { zh: 'Lead Discovery', en: 'Lead Discovery' }, theme: 'blue', 
+                  id: 'lane_1', name: { zh: '名單發掘', en: 'Lead Discovery' }, theme: 'blue', 
                   nodes: [
                     { id: 'hg_1', type: 'horizontal', mode: 'n-to-1', direction: 'ltr', inputs: ['d1', 'd2'], target: 'd3' }
                   ], comments: [] 
                 },
                 { 
-                  id: 'lane_2', name: { zh: 'Scoring', en: 'Scoring' }, theme: 'orange', 
+                  id: 'lane_2', name: { zh: '商機評分', en: 'Scoring' }, theme: 'orange', 
                   nodes: ['d4'], comments: [] 
                 },
                 { 
-                  id: 'lane_3', name: { zh: 'Engagement & Close', en: 'Engagement & Close' }, theme: 'green', 
+                  id: 'lane_3', name: { zh: '接洽與成交', en: 'Engagement & Close' }, theme: 'green', 
                   nodes: [
                     { id: 'hg_2', type: 'horizontal', mode: 'n-to-1', direction: 'ltr', inputs: ['d5', 'd7'], target: 'd6' }
                   ], comments: [] 
@@ -627,7 +630,7 @@
                 onDragOver={e => { e.preventDefault(); e.stopPropagation(); }} 
                 onDrop={e => { e.preventDefault(); e.stopPropagation(); }}
                 onClick={(e) => { e.stopPropagation(); setActivePanel({type:'agent',id:agentId}); }} 
-                className={`group relative p-4 ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl shadow-sm hover:shadow-xl cursor-pointer transition-all border-l-4 ${aTheme.border.replace('bg-', 'border-')} flex items-start overflow-visible w-full bg-white/95 ${!isInsideGroup ? 'mb-6 w-80' : 'mb-3 last:mb-0 min-w-[280px]'}`}
+                className={`group relative p-4 ${aTheme.cardBg} border ${aTheme.cardBorder} rounded-2xl shadow-sm hover:shadow-xl cursor-pointer transition-all border-l-4 ${aTheme.border.replace('bg-', 'border-')} flex items-start overflow-visible bg-white/95 shrink-0 w-[300px] ${!isInsideGroup ? 'mb-6' : 'mb-3 last:mb-0'}`}
               >
                 <AgentIcon mode={agent.mode} />
                 <div className="flex-1 min-w-0 flex flex-col justify-center relative z-10">
@@ -643,6 +646,11 @@
                     </div>
                   )}
                 </div>
+                {agent.comments && agent.comments.length > 0 && (
+                  <div className={`absolute top-2 right-11 flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold border shadow-sm ${aTheme.tagBg} ${aTheme.tagText} ${aTheme.cardBorder} z-20`}>
+                    <MessageCircle size={10} className="mr-1" /> {agent.comments.length}
+                  </div>
+                )}
                 <button onClick={(e) => { e.stopPropagation(); removeAgentFromAllLanes(agentId); }} className="absolute top-2 right-2 p-2 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all shadow-sm z-20">
                   <Trash2 size={14}/>
                 </button>
@@ -654,7 +662,7 @@
             <div 
               onDragOver={e => { e.preventDefault(); e.stopPropagation(); }} 
               onDrop={e => handleDrop(e, zoneId)} 
-              className="w-full min-h-[70px] min-w-[280px] flex items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white/50 text-[11px] text-slate-400 font-bold hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-colors cursor-crosshair mb-3 last:mb-0"
+              className="w-[300px] shrink-0 min-h-[70px] flex items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white/50 text-[11px] text-slate-400 font-bold hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-colors cursor-crosshair mb-3 last:mb-0"
             >{text}</div>
           );
 
@@ -726,9 +734,11 @@
                                 <div key={a.id} draggable onDragStart={e => onDragStart(e, 'library', a.id)} onClick={() => setActivePanel({type:'agent',id:a.id})} className={`p-4 border ${theme.cardBg} ${theme.cardBorder} rounded-xl cursor-grab hover:shadow-lg transition-all flex items-center relative border-l-4 ${theme.border.replace('bg-', 'border-')} overflow-hidden`}>
                                   <AgentIcon mode={a.mode} />
                                   <div className="flex-1 min-w-0 pr-6">
-                                    <div className={`font-bold text-[13px] ${theme.cardText} truncate`}>{getLoc(a.name, lang)}</div>
+                                    <div className={`font-bold text-[13px] ${theme.cardText} leading-snug`}>{getLoc(a.name, lang)}</div>
+                                    {/* 🚀 UI FIX: 讓 Agent 庫區塊 (左側邊欄) 正確顯示 Agent 簡短說明 */}
+                                    <div className={`text-[10px] font-medium opacity-70 ${theme.cardText} mt-1 mb-2 line-clamp-2 leading-relaxed`}>{getLoc(a.subtitle, lang)}</div>
                                     {a.tags && a.tags.length > 0 && (
-                                      <div className="flex gap-1 mt-1 overflow-hidden">
+                                      <div className="flex gap-1 overflow-hidden">
                                         {a.tags.slice(0, 2).map((tag, idx) => <span key={idx} className={`text-[8px] font-bold px-1 py-0.5 rounded ${theme.tagBg} ${theme.tagText} truncate max-w-[50px]`}>{tag}</span>)}
                                         {a.tags.length > 2 && <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${theme.tagBg} ${theme.tagText}`}>+{a.tags.length-2}</span>}
                                       </div>
@@ -853,7 +863,6 @@
                   )}
                 </aside>
 
-                {/* 🚀 UI FIX: 移除 justify-center 避免左側裁切，拔除 no-scrollbar 並套用客製化捲軸 canvas-scrollbar */}
                 <main className="flex-1 min-w-0 relative bg-[#f1f4f8] overflow-auto p-12 flex items-start canvas-scrollbar">
                   <div className="absolute inset-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
                   {!isSidebarOpen && (
@@ -871,6 +880,11 @@
                             <div className="flex items-center">
                               <div className="w-6 h-6 bg-white/20 rounded-md flex items-center justify-center text-[11px] mr-4 font-bold border border-white/30 backdrop-blur-sm shadow-sm">{idx + 1}</div>
                               <span className="font-extrabold text-[13px] uppercase tracking-wider">{getLoc(lane.name, lang)}</span>
+                              {lane.comments && lane.comments.length > 0 && (
+                                <div className="ml-3 flex items-center bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold border border-white/30 backdrop-blur-sm shadow-sm">
+                                  <MessageCircle size={10} className="mr-1" /> {lane.comments.length}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div onDragOver={e => { e.preventDefault(); e.stopPropagation(); }} onDrop={e => handleDrop(e, `lane_${lane.id}`)} className="flex-1 p-6 bg-white/80 backdrop-blur-lg border-x border-b border-slate-200/40 rounded-b-[24px] min-h-[600px] flex flex-col shadow-2xl shadow-slate-200/50">
@@ -883,7 +897,7 @@
                                     <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 p-1.5 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all z-20"><Trash2 size={14}/></button>
                                     
                                     <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
-                                      <div className="flex flex-col z-10 min-w-[280px]">
+                                      <div className="flex flex-col z-10 w-[300px] shrink-0">
                                         {node.inputs && node.inputs.map(id => renderAgentCard(id, lane.id, true))}
                                         {renderDropzone(`${node.id}_inputs`, t.dropInputs)}
                                       </div>
@@ -891,7 +905,7 @@
                                         {isRtl ? <ArrowLeft size={32} className="text-slate-300" /> : <ArrowRight size={32} className="text-slate-300" />}
                                         <button onClick={() => toggleHorizontalDir(lane.id, node.id)} className="flex items-center space-x-1 text-[9px] font-bold text-slate-400 hover:text-blue-500 mt-2 bg-white px-2 py-1 rounded-full border shadow-sm transition-colors"><ArrowRightLeft size={10}/> <span>{t.switchDir}</span></button>
                                       </div>
-                                      <div className="flex flex-col justify-center z-10 min-w-[280px]">
+                                      <div className="flex flex-col justify-center z-10 w-[300px] shrink-0">
                                         {node.target ? renderAgentCard(node.target, lane.id, true) : renderDropzone(`${node.id}_target`, t.dropTarget)}
                                       </div>
                                     </div>
@@ -903,7 +917,7 @@
                                   <div key={node.id} className="relative w-full p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex flex-col items-center group/vg">
                                     <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 p-1.5 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all z-20"><Trash2 size={14}/></button>
                                     
-                                    <div className="flex flex-col items-center w-full z-10">
+                                    <div className="flex flex-col items-center w-[300px] shrink-0 z-10">
                                       {(node.items || []).map((agentId, i) => (
                                         <Fragment key={agentId}>
                                           {i > 0 && (
@@ -922,7 +936,7 @@
                                         {node.direction === 'down' ? <ArrowDown size={10}/> : <ArrowUp size={10}/>} <span>{t.switchDir}</span>
                                       </button>
                                     )}
-                                    <div className="mt-3 w-full relative z-10">
+                                    <div className="mt-3 w-[300px] flex justify-center relative z-10">
                                       {renderDropzone(`${node.id}_v_append`, t.dropInputs)}
                                     </div>
                                   </div>

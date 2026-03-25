@@ -29,7 +29,7 @@
         // 1. 綁定 React Hooks
         const { useState, useRef, useEffect, Fragment } = React;
 
-        // 2. 自動橋接 Lucide 圖示
+        // 2. 自動橋接 Lucide 圖示 (加入防呆機制，若圖示遺失給予預設佔位符)
         const LucideIcon = ({ name, size = 16, className = "", ...props }) => {
             const iconRef = useRef(null);
             useEffect(() => {
@@ -39,6 +39,9 @@
                         children.map(c => `<${c[0]} ${Object.entries(c[1]).map(([k,v])=>`${k}="${v}"`).join(' ')}></${c[0]}>`).join('') +
                         `</svg>`;
                     iconRef.current.innerHTML = svgHtml;
+                } else if (iconRef.current) {
+                    // 若 CDN 抓不到圖示，顯示一個紅色的 X 作為緊急替代，避免按鈕變隱形空殼
+                    iconRef.current.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
                 }
             }, [name, size, className]);
             return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} {...props}></span>;
@@ -51,7 +54,10 @@
         const FileText = (p) => <LucideIcon name="file-text" {...p} />;
         const Settings = (p) => <LucideIcon name="settings" {...p} />;
         const Plus = (p) => <LucideIcon name="plus" {...p} />;
-        const Trash2 = (p) => <LucideIcon name="trash-2" {...p} />;
+        
+        // 🚀 UI FIX: 將 trash-2 改為最穩定支援的 trash，解決 CDN 抓不到圖示的問題
+        const Trash2 = (p) => <LucideIcon name="trash" {...p} />;
+        
         const MessageCircle = (p) => <LucideIcon name="message-circle" {...p} />;
         const GripVertical = (p) => <LucideIcon name="grip-vertical" {...p} />;
         const CheckCircle2 = (p) => <LucideIcon name="check-circle-2" {...p} />;
@@ -86,11 +92,11 @@
         const FileJson = (p) => <LucideIcon name="file-json" {...p} />;
 
         // =========================================================================
-        // 4. SSOT v1.17.2 商業邏輯代碼 (修復刪除按鈕隱形問題)
+        // 4. SSOT v1.17.3 商業邏輯代碼 (修復垃圾桶圖示渲染)
         // =========================================================================
 
-        const APP_VERSION = "v1.17.2 (GitHub 部署版)";
-        const APP_UPDATE_NOTE = "UI Fix: Visible Delete Buttons";
+        const APP_VERSION = "v1.17.3 (GitHub 部署版)";
+        const APP_UPDATE_NOTE = "UI Fix: Restore Missing Trash Icon";
 
         const DICT = {
           zh: {
@@ -611,7 +617,6 @@
                     </div>
                   )}
                 </div>
-                {/* 🚀 UI FIX: 讓 Agent 卡片上的垃圾桶常駐顯示，不要再依賴 Hover */}
                 <button onClick={(e) => { e.stopPropagation(); removeAgentFromAllLanes(agentId); }} className="absolute top-2 right-2 p-2 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all shadow-sm z-20">
                   <Trash2 size={14}/>
                 </button>
@@ -723,7 +728,6 @@
                           {activePanel.type === 'agent' ? t.settingsTitleAgent : activePanel.type === 'lane' ? t.settingsTitleLane : t.settingsTitleScenario}
                         </h2>
                         <div className="flex space-x-2">
-                          {/* 🚀 UI FIX: 讓面板上的刪除鍵具有強烈紅色引導，不再只有灰底 Hover */}
                           {(activePanel.type === 'agent' || activePanel.type === 'lane') && (
                             <button onClick={() => activePanel.type === 'agent' ? initiateDeleteAgent(activePanel.id) : initiateDeleteLane(activePanel.id)} className="p-1.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-all">
                               <Trash2 size={16} />
@@ -849,7 +853,6 @@
                                 const isRtl = node.direction === 'rtl';
                                 return (
                                   <div key={node.id} className="relative w-max p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex items-center justify-center group/hg">
-                                    {/* 🚀 UI FIX: 水平群組刪除鍵永久顯示 */}
                                     <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 p-1.5 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all z-20"><Trash2 size={14}/></button>
                                     
                                     <div className={`flex items-stretch ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -871,7 +874,6 @@
                               else if (typeof node === 'object' && node.type === 'vertical') {
                                 return (
                                   <div key={node.id} className="relative w-full p-4 mb-6 border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-3xl flex flex-col items-center group/vg">
-                                    {/* 🚀 UI FIX: 垂直群組刪除鍵永久顯示 */}
                                     <button onClick={(e) => { e.stopPropagation(); handleDeleteGroup(lane.id, node.id); }} className="absolute top-3 right-3 p-1.5 bg-white/90 border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shadow-sm transition-all z-20"><Trash2 size={14}/></button>
                                     
                                     <div className="flex flex-col items-center w-full z-10">
